@@ -6,7 +6,7 @@ def get_analysis_data(file_token, n=10, columns=None):
         analyzed_data = {}
         # Check if file exists
         filename = f"appended_{file_token}.csv"
-        filepath = os.path.join('.\\files', 'appended', filename)
+        filepath = os.path.join('files', 'appended', filename)
         if not os.path.isfile(filepath):
             return f"File does not exist.", None
 
