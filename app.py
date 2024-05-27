@@ -35,7 +35,7 @@ def upload_file():
         new_filename = f"uploaded_{token}.csv"
 
         # Create the upload folder if it doesn't exist
-        upload_folder = "./files/uploaded"
+        upload_folder = os.path.join("files", 'uploaded')
         os.makedirs(upload_folder, exist_ok=True)
 
         # Define the file path
@@ -87,7 +87,7 @@ def download_file():
         
         # Get the filename associated with the token
         filename = f"appended_{token}.csv"
-        filepath = os.path.join('./files/appended', filename)
+        filepath = os.path.join('files', 'appended', filename)
         
         # Check if the file exists
         if not os.path.isfile(filepath):

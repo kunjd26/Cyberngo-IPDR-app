@@ -38,9 +38,7 @@ def get_analysis_data(file_token, n=10, columns=None):
                 "Top AS Domain": top_as_domain,
                 "Top Country": top_country
             }
-
-            print(analyzed_data)
-
+            
         return 0, analyzed_data
     except Exception as e:
         return f"An error occurred: {e}", None

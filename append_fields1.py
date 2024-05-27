@@ -11,7 +11,7 @@ def process_file(file_token, access_token='1fc6dc155d276a'):
 
         # Check if file exists
         filename = f"parsed_{file_token}.csv"
-        filepath = os.path.join('.\\files', 'parsed', filename)
+        filepath = os.path.join('files', 'parsed', filename)
         if not os.path.isfile(filepath):
             return f"File does not exist."
 
@@ -74,7 +74,7 @@ def process_file(file_token, access_token='1fc6dc155d276a'):
         df = df.rename(columns=column_rename_dict)
 
         # Save the updated dataframe to a new CSV file in the .files/generate1 directory
-        new_dir = os.path.join('.\\files', 'appended')
+        new_dir = os.path.join('files', 'appended')
         if not os.path.exists(new_dir):
             os.makedirs(new_dir)
         new_filepath = os.path.join(new_dir, f"appended_{file_token}.csv")

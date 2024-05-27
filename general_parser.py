@@ -5,9 +5,8 @@ import os
 ALLOWED_EXTENSIONS = {'csv'}
 
 # Folder to store uploaded files and generated files
-FILE_FOLDER = 'files'
-UPLOAD_FOLDER = os.path.join(FILE_FOLDER, 'uploaded')
-PARSED_FOLDER = os.path.join(FILE_FOLDER, 'parsed')
+UPLOAD_FOLDER = os.path.join("files", 'uploaded')
+PARSED_FOLDER = os.path.join("files", 'parsed')
 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(PARSED_FOLDER, exist_ok=True)
