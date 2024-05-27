@@ -2,3 +2,4 @@ files/
 static-data-files/
 .vscode/
 __pycache__/
+cyberngo.db
