@@ -47,7 +47,9 @@ def parse_file(file_token):
     try:
         filename = f"uploaded_{file_token}.csv"
         file_path = os.path.join(UPLOAD_FOLDER, filename)
-        print(f"Processing file: {file_path}")
+
+        if not os.path.isfile(file_path):
+            return f"File does not exist."
 
         # Process the file
         df = read_csv_with_header_detection(file_path)

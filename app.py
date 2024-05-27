@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify, send_file
 import os, time, random
-from append_fields import process_file
+from append_fields1 import process_file
 from general_parser import parse_file
-import pprint
+from analysis_data import get_analysis_data
 
 app = Flask(__name__)
 
@@ -70,6 +70,7 @@ def execute_file():
             return jsonify({"error": {"message": return_value}}), 400
         
         return jsonify({"data": {"token": token, "message": "File executed successfully."}}), 200
+    
     except Exception as e:
         return jsonify({"error": {"message": str(e)}}), 500
 
@@ -94,6 +95,37 @@ def download_file():
         
         # Send the file for download
         return send_file(filepath, as_attachment=True, download_name=f"{token}.csv")
+    except Exception as e:
+        return jsonify({"error": {"message": str(e)}}), 500
+
+
+# Analysis endpoint
+@app.route('/api/analysis/', methods=['GET'])
+def analysis_file():
+    try:
+        token = request.args.get('token')
+        
+        token = request.args.get('token')
+        if not token:
+            return jsonify({"error": {"message": "No token provided"}}), 400
+        
+        n = request.args.get('n')
+        if not n:
+            n = 10
+        else:
+            n = int(n)
+
+        columns = request.args.get('columns')
+        if not columns:
+            return_value, analyzed_data = get_analysis_data(token, n)
+        else:
+            return_value, analyzed_data = get_analysis_data(token, n, columns)
+            
+        if (return_value != 0):
+            return jsonify({"error": {"message": return_value}}), 400
+        
+        return jsonify({"data": {"message": "Analysis completed successfully.", "analysis" :analyzed_data}}), 200
+    
     except Exception as e:
         return jsonify({"error": {"message": str(e)}}), 500
 
