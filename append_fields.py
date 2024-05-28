@@ -20,10 +20,12 @@ def process_file(file_token, access_token='1fc6dc155d276a'):
 
         # Get unique Destination IPs
         unique_ips = df['Destination IP'].unique()
+        print(len(unique_ips))
 
         # Get details for each unique IP
         ip_details_list = []
         for ip in unique_ips:
+            print(f"\r{len(ip_details_list)}", end="")
             try:
                 details = handler.getDetails(ip).all
                 details['ip'] = ip  # Add the IP address to the details dictionary
@@ -31,6 +33,7 @@ def process_file(file_token, access_token='1fc6dc155d276a'):
             except Exception as e:
                 # print(f"Error fetching details for IP {ip}: {e}")
                 continue
+        print()
 
         # Convert list of details to DataFrame
         ip_details_df = pd.DataFrame(ip_details_list)
@@ -49,7 +52,7 @@ def process_file(file_token, access_token='1fc6dc155d276a'):
         ip_details_df = ip_details_df.rename(columns=column_rename_dict)
 
         # Extract first word from 'org' field and rename as 'ASN'
-        ip_details_df['ASN'] = ip_details_df['org'].str.split(' ').str[0]
+        ip_details_df['asn'] = ip_details_df['org'].str.split(' ').str[0]
 
         # Merge original DataFrame with new DataFrame based on 'Destination IP' and 'ip'
         df_merged = pd.merge(df, ip_details_df, left_on='Destination IP', right_on='ip', how='left')

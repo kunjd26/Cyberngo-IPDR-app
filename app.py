@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, send_file
 import os, time, random
-from append_fields1 import process_file
+from append_fields import process_file
 from general_parser import parse_file
 from analysis_data import get_analysis_data
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 # Helper function to check if the file has an allowed extension
 def allowed_file(filename, allowed_extensions):

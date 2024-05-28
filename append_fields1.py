@@ -32,6 +32,7 @@ def process_file(file_token, access_token='1fc6dc155d276a'):
             except Exception as e:
                 # print(f"Error fetching details for IP {ip}: {e}")
                 continue
+        print()
 
         # Convert list of details to DataFrame
         ip_details_df = pd.DataFrame(ip_details_list)
