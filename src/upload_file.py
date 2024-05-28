@@ -22,7 +22,6 @@ def upload_file(file):
 
         # Define the file path
         file_path = os.path.abspath(os.path.join(UPLOAD_FOLDER, new_filename))
-        print(file_path)
 
         # Save the file, overwriting if it already exists
         file.save(file_path)

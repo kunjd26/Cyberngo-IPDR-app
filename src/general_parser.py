@@ -7,8 +7,8 @@ PARSED_FOLDER = os.path.join("files", 'parsed')
 
 def parse_file(file_token):
     try:
-        filename = f"uploaded-{file_token}.csv"
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        file_name = f"uploaded-{file_token}.csv"
+        file_path = os.path.join(UPLOAD_FOLDER, file_name)
 
         if not os.path.isfile(file_path):
             return 1, "File not found."

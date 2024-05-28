@@ -3,6 +3,7 @@ from flask_cors import CORS
 import os
 from src.upload_file import upload_file
 from src.general_parser import parse_file
+from src.process_file import append_fields
 from analysis_data import get_analysis_data
 
 app = Flask(__name__)
@@ -40,23 +41,41 @@ def upload_file_endpoint():
 @app.route('/api/execute/', methods=['GET'])
 def execute_file_endpoint():
     try:
-        # Check if the token is provided
+        # Check if the token is provided.
         file_token = request.args.get('token')
         if not file_token:
             return jsonify({"success": "fail", "message": "Token not provided."}), 400
         
-        # Parse file through general parser
+        # Check if the static database only parameter provided.
+        static_db_only = request.args.get('static_db_only')
+        if not static_db_only:
+            static_db_only = False
+        else:
+            if static_db_only.lower() == 'true':
+                static_db_only = True
+            else:
+                static_db_only = False
+        
+        # Parse file through general parser.
         status, result = parse_file(file_token)
 
-        if status == 0:
-            return jsonify({"status": "success", "message": "File executed successfully."}), 200
-        elif status == 1:
+        if status == 1:
             return jsonify({"status": "fail", "message": result}), 400
         elif status == 2:
             return jsonify({"status": "error", "message": result}), 500
         else:
-            return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
-        
+            # Append the files.
+            status, result = append_fields(file_token, static_db_only)
+
+            if status == 0:
+                return jsonify({"status": "success", "message": "File executed successfully."}), 200
+            elif status == 1:
+                return jsonify({"status": "fail", "message": result}), 400
+            elif status == 2:
+                return jsonify({"status": "error", "message": result}), 500
+            else:
+                return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
+
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
