@@ -2,8 +2,7 @@ from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import os
 from src.upload_file import upload_file
-from append_fields import process_file
-from general_parser import parse_file
+from src.general_parser import parse_file
 from analysis_data import get_analysis_data
 
 app = Flask(__name__)
@@ -39,28 +38,27 @@ def upload_file_endpoint():
 
 # Execute endpoint
 @app.route('/api/execute/', methods=['GET'])
-def execute_file():
+def execute_file_endpoint():
     try:
-        token = request.args.get('token')
-        if not token:
-            return jsonify({"error": {"message": "No token provided"}}), 400
+        # Check if the token is provided
+        file_token = request.args.get('token')
+        if not file_token:
+            return jsonify({"success": "fail", "message": "Token not provided."}), 400
         
         # Parse file through general parser
-        return_value = parse_file(token)
-        
-        if (return_value != 0):
-            return jsonify({"error": {"message": return_value}}), 400
-        
-        # Append extra fields to the file
-        return_value = process_file(token)
+        status, result = parse_file(file_token)
 
-        if (return_value != 0):
-            return jsonify({"error": {"message": return_value}}), 400
+        if status == 0:
+            return jsonify({"status": "success", "message": "File executed successfully."}), 200
+        elif status == 1:
+            return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "error", "message": result}), 500
+        else:
+            return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
         
-        return jsonify({"data": {"token": token, "message": "File executed successfully."}}), 200
-    
     except Exception as e:
-        return jsonify({"error": {"message": str(e)}}), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 # Download endpoint
