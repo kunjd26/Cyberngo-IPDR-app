@@ -2,7 +2,6 @@ import ipaddress
 import ipinfo
 import os
 import pandas as pd
-import numpy as np
 from pandas import json_normalize
 import sqlite3
 
@@ -24,88 +23,136 @@ def append_fields(file_token, static_database_only=False):
         # Read the CSV file.
         df = pd.read_csv(file_path, low_memory=False)
 
+        # Get unique Destination Ports
+        unique_ports = df['destination port'].unique()
+
         # Establish a connection to the SQLite database.
         connection = sqlite3.connect('cyberngo.db')
 
-        # SQL query to fetch port description.
-        sql_query = "SELECT port_no, port_description FROM port_desc"
+        # Fetch port descriptions for each unique port
+        port_desc_list = []
+        for port in unique_ports:
+            try:
+                # SQL query to fetch port description for the current port
+                sql_query = f"SELECT port_no, port_description FROM port_desc WHERE port_no = {port}"
 
-        # Execute the SQL query and fetch the data into a new DataFrame.
-        port_desc_df = pd.read_sql_query(sql_query, connection)
+                # Execute the SQL query and fetch data into a new DataFrame
+                port_desc_df = pd.read_sql_query(sql_query, connection)
 
-        # Merge the original DataFrame with the new DataFrame on the 'Destination Port' and 'port_no' columns.
-        df = pd.merge(df, port_desc_df, left_on='Destination Port', right_on='port_no', how='left')
+                # Append port description to the list
+                port_desc_list.append(port_desc_df)
 
-        # SQL query to fetch country + ASN details.
-        sql_query = "SELECT * FROM country_asn"
-        
-        # Execute the SQL query and fetch the data into a new DataFrame.
-        country_asn_df = pd.read_sql_query(sql_query, connection)
+            except Exception as e:
+                # print(f"Error fetching details for port {port}: {e}")
+                continue
 
-        # Close the connection to the SQLite database
+        # Close the connection to the SQLite database.
         connection.close()
 
-        # Convert IP addresses to integers
-        df['Destination IP Int'] = df['Destination IP'].apply(convert_ip)
-        country_asn_df['start_ip'] = country_asn_df['start_ip'].apply(convert_ip)
-        country_asn_df['end_ip'] = country_asn_df['end_ip'].apply(convert_ip)
+        # Concatenate the list of DataFrames into a single DataFrame
+        port_desc_df = pd.concat(port_desc_list)
 
-        # Initialize an empty list to store the merge results
-        merge_results = []
-
-        # Iterate over each row in the main DataFrame
-        for idx, row in df.iterrows():
-            # Get the Destination IP Int value
-            dest_ip_int = row['Destination IP Int']
-            # Find matching rows in country_asn_df where Destination IP Int is within the range
-            match = country_asn_df[
-                (country_asn_df['start_ip'] <= dest_ip_int) & 
-                (country_asn_df['end_ip'] >= dest_ip_int)
-            ]
-            # If there are matches, append them to the results
-            if not match.empty:
-                for match_idx, match_row in match.iterrows():
-                    merged_row = {**row.to_dict(), **match_row.to_dict()}
-                    merge_results.append(merged_row)
-            else:
-                merge_results.append(row.to_dict())
-
-        # Convert the list of merged results to a DataFrame
-        df = pd.DataFrame(merge_results)
-
+        # Merge original DataFrame with the new DataFrame on the 'Destination Port' and 'port_no' columns
+        df = pd.merge(df, port_desc_df, left_on='destination port', right_on='port_no', how='left')
 
         if static_database_only == True:
+            # Get unique Destination IPs
+            unique_ips = df['destination ip'].unique()
+            df['destination ip int'] = df['destination ip'].apply(convert_ip)
+
+            # Establish a connection to the SQLite database.
+            connection = sqlite3.connect('cyberngo.db')
+
+            # Fetch IP details for each unique IP
+            ip_details_list = []
+            print(len(unique_ips))
+            for ip in unique_ips:
+                try:
+                    print(f"\r{len(ip_details_list)}", end="")
+                    # SQL query to fetch IP details for the current IP
+                    converted_int_ip = convert_ip(ip)
+                    sql_query = f"SELECT * FROM country_asn WHERE {converted_int_ip} BETWEEN start_ip_int AND end_ip_int"
+
+                    # Execute the SQL query and fetch data into a new DataFrame
+                    ip_details_df = pd.read_sql_query(sql_query, connection)
+                    ip_details_df['converted_int_ip'] = converted_int_ip
+
+                    # Append IP details to the list
+                    ip_details_list.append(ip_details_df)
+                except Exception as e:
+                    # Handle any errors gracefully
+                    # print(f"Error fetching details for IP {ip}: {e}")
+                    continue
+            print()
+
+            # Close the connection to the SQLite database.
+            connection.close()
+
+            # Concatenate the list of DataFrames into a single DataFrame
+            ip_details_df = pd.concat(ip_details_list)
+
+            # Merge original DataFrame with the new DataFrame on the 'destination ip int' and 'port_no' columns
+            df = pd.merge(df, ip_details_df, left_on='destination ip int', right_on='converted_int_ip', how='left')
+
             append_columns = [ 'ip', 'city', 'region', 'loc', 'org', 'postal', 'timezone', 'isEU', 'privacy.vpn', 'privacy.proxy', 'privacy.tor', 'privacy.relay', 'privacy.hosting', 'privacy.service', 'anycast']
 
             # Adding new columns with None values
             for col in append_columns:
                 df[col] = None
         else:
+            # Get unique Destination IPs
+            unique_ips = df['destination ip'].unique()
+            df['destination ip int'] = df['destination ip'].apply(convert_ip)
+
             # Access token and handler setup
             handler = ipinfo.getHandler(ACCESS_TOKEN)
 
-            # Get unique Destination IPs
-            unique_ips = df['Destination IP'].unique()
-            print(len(unique_ips))
+            # Establish a connection to the SQLite database.
+            connection = sqlite3.connect('cyberngo.db')
 
-            # Get details for each unique IP
-            ip_details_list = []
+            # Fetch IP details for each unique IP
+            ip_details_list_from_static_db = []
+            ip_details_list_from_api = []
+            print(len(unique_ips))
             for ip in unique_ips:
-                print(f"\r{len(ip_details_list)}", end="")
                 try:
+                    # Fetch IP details from ipinfo API.
                     details = handler.getDetails(ip).all
-                    details['ip'] = ip  # Add the IP address to the details dictionary
-                    ip_details_list.append(details)
+
+                    ip_details_list_from_api.append(details)
+
+                    # SQL query to fetch IP details for the current IP
+                    converted_int_ip = convert_ip(ip)
+                    sql_query = f"SELECT * FROM country_asn WHERE {converted_int_ip} BETWEEN start_ip_int AND end_ip_int"
+
+                    # Execute the SQL query and fetch data into a new DataFrame
+                    ip_details_df = pd.read_sql_query(sql_query, connection)
+                    ip_details_df['converted_int_ip'] = converted_int_ip
+
+                    # Append IP details to the list
+                    ip_details_list_from_static_db.append(ip_details_df)
+
+                    print(f"\r{len(ip_details_list_from_static_db)}", end="")
                 except Exception as e:
+                    # Handle any errors gracefully
                     # print(f"Error fetching details for IP {ip}: {e}")
                     continue
             print()
 
+            # Close the connection to the SQLite database.
+            connection.close()
+
+            # Concatenate the list of DataFrames into a single DataFrame
+            ip_details_df = pd.concat(ip_details_list_from_static_db)
+
+            # Merge original DataFrame with the new DataFrame on the 'destination ip int' and 'port_no' columns
+            df = pd.merge(df, ip_details_df, left_on='destination ip int', right_on='converted_int_ip', how='left')
+
             # Convert list of details to DataFrame
-            ip_details_df = pd.DataFrame(ip_details_list)
+            ip_details_df = pd.DataFrame(ip_details_list_from_api)
 
             # Normalize nested fields
-            ip_details_df = json_normalize(ip_details_list)
+            ip_details_df = json_normalize(ip_details_list_from_api)
 
             # Select the required columns
             selected_columns = [ 'ip', 'city', 'region', 'loc', 'org', 'postal', 'timezone', 'isEU', 'privacy.vpn', 'privacy.proxy', 'privacy.tor', 'privacy.relay', 'privacy.hosting', 'privacy.service', 'anycast']
@@ -115,10 +162,10 @@ def append_fields(file_token, static_database_only=False):
             ip_details_df = ip_details_df[available_columns]
 
             # Merge original DataFrame with new DataFrame based on 'Destination IP' and 'ip'
-            df = pd.merge(df, ip_details_df, left_on='Destination IP', right_on='ip', how='left')
-        
+            df = pd.merge(df, ip_details_df, left_on='destination ip', right_on='ip', how='left')
+
         # Drop unnecessary columns from the df
-        columns_to_drop = ['start_ip', 'end_ip', 'index', 'port_no', 'ip', 'country_flag.emoji', 'country_flag.unicode', 'country_flag_url', 'country_currency.symbol']
+        columns_to_drop = ['start_ip', 'end_ip', 'index', 'port_no', 'ip', 'country_flag.emoji', 'country_flag.unicode', 'country_flag_url', 'country_currency.symbol', 'destination ip int', 'start_ip_int', 'end_ip_int', 'converted_int_ip']
         df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
 
         # Rename columns
@@ -142,11 +189,11 @@ def append_fields(file_token, static_database_only=False):
 
 def convert_ip(ip):
     if pd.isna(ip):
-        return np.nan
+        return "0"
     try:
-        return int(ipaddress.IPv4Address(ip))
+        return str(int(ipaddress.IPv4Address(ip)))
     except ipaddress.AddressValueError:
         try:
-            return int(ipaddress.IPv6Address(ip))
+            return str(int(ipaddress.IPv6Address(ip)))
         except ipaddress.AddressValueError:
-            return np.nan
+            return "0"
