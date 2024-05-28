@@ -1,55 +1,41 @@
 from flask import Flask, request, jsonify, send_file
-import os, time, random
+from flask_cors import CORS
+import os
+from src.upload_file import upload_file
 from append_fields import process_file
 from general_parser import parse_file
 from analysis_data import get_analysis_data
-from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-# Helper function to check if the file has an allowed extension
-def allowed_file(filename, allowed_extensions):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
-
-
 # Upload endpoint
-@app.route('/api/upload/', methods=['POST'])
-def upload_file():
+@app.route('/api/upload', methods=['POST'])
+def upload_file_endpoint():
     try:
-        # Allowed file extensions
-        allowed_extensions = {'csv'}
-
-
+        # Check if the request contains a file.
         if 'file' not in request.files:
-            return jsonify({"error": {"message": "No file part in the request"}}), 400
+            return jsonify({"status": "fail", "message": "No file part present in request."}), 400
 
         file = request.files['file']
         if file.filename == '':
-            return jsonify({"error": {"message": "No file selected for uploading"}}), 400
+            return jsonify({"status": "fail", "message": "No file is selected for upload."}), 400
+        
+        # Upload the file.
+        status, result = upload_file(file)
 
-        # Check if the file has an allowed extension
-        if not allowed_file(file.filename, allowed_extensions):
-            return jsonify({"error": {"message": "File type not allowed"}}), 400
+        if status == 0:
+            return jsonify({"status": "success", "message": "File uploaded successfully.", "token": result}), 200
+        elif status == 1:
+            return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "error", "message": result}), 500
+        else:
+            return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
 
-        # Generate a token for the file
-        token = f"{int(time.time())}_{random.randint(1000, 9999)}"
-        new_filename = f"uploaded_{token}.csv"
-
-        # Create the upload folder if it doesn't exist
-        upload_folder = os.path.join("files", 'uploaded')
-        os.makedirs(upload_folder, exist_ok=True)
-
-        # Define the file path
-        file_path = os.path.join(upload_folder, new_filename)
-
-        # Save the file, overwriting if it already exists
-        file.save(file_path)
-
-        return jsonify({"data": {"token": token, "message": "File uploaded successfully"}}), 200
     except Exception as e:
-        return jsonify({"error": {"message": str(e)}}), 500
-    
+        return jsonify({"status": "error", "message": str(e)}), 500
+
 
 # Execute endpoint
 @app.route('/api/execute/', methods=['GET'])
