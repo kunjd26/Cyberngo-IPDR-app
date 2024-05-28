@@ -4,6 +4,7 @@ import os
 from src.upload_file import upload_file
 from src.general_parser import parse_file
 from src.process_file import append_fields
+from src.download_file import download_file
 from analysis_data import get_analysis_data
 
 app = Flask(__name__)
@@ -82,24 +83,24 @@ def execute_file_endpoint():
 
 # Download endpoint
 @app.route('/api/download/', methods=['GET'])
-def download_file():
+def download_file_endpoint():
     try:
-        token = request.args.get('token')
+        # Check if the token is provided.
+        file_token = request.args.get('token')
+        if not file_token:
+            return jsonify({"success": "fail", "message": "Token not provided."}), 400
         
-        token = request.args.get('token')
-        if not token:
-            return jsonify({"error": {"message": "No token provided"}}), 400
-        
-        # Get the filename associated with the token
-        filename = f"appended_{token}.csv"
-        filepath = os.path.join('files', 'appended', filename)
-        
-        # Check if the file exists
-        if not os.path.isfile(filepath):
-            return jsonify({"error": {"message": "File not found"}}), 404
-        
-        # Send the file for download
-        return send_file(filepath, as_attachment=True, download_name=f"{token}.csv")
+        status, result = download_file(file_token)
+
+        if status == 0:
+            return send_file(result, as_attachment=True, download_name=f"{file_token}.csv")
+        elif status == 1:
+            return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "error", "message": result}), 500
+        else:
+            return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
+
     except Exception as e:
         return jsonify({"error": {"message": str(e)}}), 500
 
