@@ -19,26 +19,29 @@ def parse_file(file_token):
         # Strip whitespace from column names
         df.columns = df.columns.str.strip()
 
+        # Convert column names to lower case for case insensitive comparison
+        df.columns = df.columns.str.lower()
+
         # Mapping of output columns to possible input columns
         column_mapping = {
-            'Phone Number': ['MSISDN', 'Landline/MSISDN/MDN/Leased Circuit ID for Internet Access', 'Phone Number'],
-            'Roaming Circle': ['Home_Roaming_Circle', 'Roaming Circle'],
-            'Source IP': ['Source_IP', 'Source IP', 'Public IP Address'],
-            'Source Port': ['Source Port', 'Public IP Port', 'Source_Port'],
-            'Destination IP': ['Destination IP', 'Destination IP Address', 'Destination_IP'],
-            'Destination Port': ['Destination Port', 'Destination_Port'],
-            'IMEI/MAC ID': ['IMEI', 'Source MAC-ID Address/Other device Identification number', 'MAC ID', 'IMEI/MAC ID'],
-            'IMSI': ['IMSI'],
-            'Cell Global ID': ['CGI ID', 'First Cell ID-Name/Location', 'CELL ID', 'Cell Global ID'],
-            'Access Point Name': ['Access Point Name', 'Access_Point_Name'],
-            'Data Uplink Volume': ['Data Volume Uplink', 'Uplink_Vol', 'Data Uplink Volume'],
-            'Data Downlink Volume': ['Data Volume Downlink', 'Downlink_Vol', 'Data Downlink Volume'],
-            'RAT': ['RAT', '2g/3g/4g/5g'],
-            'PGW/GGSN IP': ['PGW IP address', 'PGW_GGSN_IP_Address', 'PGW/GGSN IP'],
-            'Billing Type': ['Billing Type'],
-            'timestamp': ['TIME1 (dd/MM/yyyy HH:mm:ss)', 'Session Start date & time', 'Session_Start_Time', 'timestamp'],
-            'Duration': ['Duration in sec', 'Session Duration', 'Duration'],
-            'IPV6': ['Public_IPv6', 'IPV6']
+            'phone number': ['msisdn', 'landline/msisdn/mdn/leased circuit id for internet access', 'phone number'],
+            'roaming circle': ['home_roaming_circle', 'roaming circle'],
+            'source ip': ['source_ip', 'source ip', 'public ip address'],
+            'source port': ['source port', 'public ip port', 'source_port'],
+            'destination ip': ['destination ip', 'destination ip address', 'destination_ip'],
+            'destination port': ['destination port', 'destination_port'],
+            'imei/mac id': ['imei', 'source mac-id address/other device identification number', 'mac id', 'imei/mac id'],
+            'imsi': ['imsi'],
+            'cell global id': ['cgi id', 'first cell id-name/location', 'cell id', 'cell global id'],
+            'access point name': ['access point name', 'access_point_name'],
+            'data uplink volume': ['data volume uplink', 'uplink_vol', 'data uplink volume'],
+            'data downlink volume': ['data volume downlink', 'downlink_vol', 'data downlink volume'],
+            'rat': ['rat', '2g/3g/4g/5g'],
+            'pgw/ggsn ip': ['pgw ip address', 'pgw_ggsn_ip_address', 'pgw/ggsn ip'],
+            'billing type': ['billing type'],
+            'timestamp': ['time1 (dd/mm/yyyy hh:mm:ss)', 'session start date & time', 'session_start_time', 'timestamp'],
+            'duration': ['duration in sec', 'session duration', 'duration'],
+            'ipv6': ['public_ipv6', 'ipv6']
         }
 
         # Create a dictionary for extracted columns
@@ -73,7 +76,7 @@ def parse_file(file_token):
 
 def read_csv_with_header_detection(file_path):
     delimiters = [',', ';', '\t', '|']
-    expected_columns = [ 'Phone Number', 'Roaming Circle', 'Source IP', 'Source Port', 'Destination IP', 'Destination Port', 'IMEI/MAC ID', 'IMSI', 'Cell Global ID', 'Access Point Name', 'Data Uplink Volume', 'Data Downlink Volume', 'RAT', 'PGW/GGSN IP', 'Billing Type', 'timestamp', 'Duration', 'IPV6']
+    expected_columns = [ 'Phone Number', 'Roaming Circle', 'Source IP', 'Source Port', 'Destination IP', 'Destination Port', 'IMEI/MAC ID', 'IMSI', 'Cell Global ID', 'Access Point Name', 'Data Uplink Volume', 'Data Downlink Volume', 'RAT', 'PGW/GGSN IP', 'Billing Type', 'Timestamp', 'Duration', 'IPV6']
 
     for delimiter in delimiters:
         try:
@@ -94,9 +97,9 @@ def read_csv_with_header_detection(file_path):
     raise pd.errors.ParserError("Unable to parse the CSV file with the given delimiters.")
 
 
-# Function to find the correct column from the possible options
 def find_column(df, possible_columns):
+    lower_case_df_columns = [col.lower() for col in df.columns]
     for col in possible_columns:
-        stripped_col = col.strip()
-        if stripped_col in df.columns:
+        stripped_col = col.strip().lower()
+        if stripped_col in lower_case_df_columns:
             return stripped_col

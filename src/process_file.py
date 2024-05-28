@@ -122,7 +122,7 @@ def append_fields(file_token, static_database_only=False):
         df.drop(columns=columns_to_drop, errors='ignore', inplace=True)
 
         # Rename columns
-        column_rename_dict = {'privacy.vpn': 'is_vpn', 'privacy.proxy': 'is_proxy', 'privacy.tor': 'is_tor', 'privacy.relay': 'is_relay', 'privacy.hosting': 'is_hosting', 'privacy.service': 'is_service', 'port_description': 'Port Description', 'country_name': 'Country Name', 'continent_name': 'Continent Name'}
+        column_rename_dict = {'privacy.vpn': 'is_vpn', 'privacy.proxy': 'is_proxy', 'privacy.tor': 'is_tor', 'privacy.relay': 'is_relay', 'privacy.hosting': 'is_hosting', 'privacy.service': 'is_service', 'port_description': 'port description', 'country_name': 'country name', 'continent_name': 'continent name'}
         df = df.rename(columns=column_rename_dict)
 
         # Create the upload folder if it doesn't exist.

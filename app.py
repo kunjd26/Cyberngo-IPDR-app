@@ -1,11 +1,10 @@
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
-import os
 from src.upload_file import upload_file
 from src.general_parser import parse_file
 from src.process_file import append_fields
 from src.download_file import download_file
-from analysis_data import get_analysis_data
+from src.process_data import analysis_data
 
 app = Flask(__name__)
 CORS(app)
@@ -45,7 +44,7 @@ def execute_file_endpoint():
         # Check if the token is provided.
         file_token = request.args.get('token')
         if not file_token:
-            return jsonify({"success": "fail", "message": "Token not provided."}), 400
+            return jsonify({"status": "fail", "message": "Token not provided."}), 400
         
         # Check if the static database only parameter provided.
         static_db_only = request.args.get('static_db_only')
@@ -88,7 +87,7 @@ def download_file_endpoint():
         # Check if the token is provided.
         file_token = request.args.get('token')
         if not file_token:
-            return jsonify({"success": "fail", "message": "Token not provided."}), 400
+            return jsonify({"status": "fail", "message": "Token not provided."}), 400
         
         status, result = download_file(file_token)
 
@@ -107,13 +106,12 @@ def download_file_endpoint():
 
 # Analysis endpoint
 @app.route('/api/analysis/', methods=['GET'])
-def analysis_file():
+def analysis_file_endpoint():
     try:
-        token = request.args.get('token')
-        
-        token = request.args.get('token')
-        if not token:
-            return jsonify({"error": {"message": "No token provided"}}), 400
+        # Check if the token is provided.
+        file_token = request.args.get('token')
+        if not file_token:
+            return jsonify({"status": "fail", "message": "Token not provided."}), 400
         
         n = request.args.get('n')
         if not n:
@@ -123,14 +121,18 @@ def analysis_file():
 
         columns = request.args.get('columns')
         if not columns:
-            return_value, analyzed_data = get_analysis_data(token, n)
+            status, result = analysis_data(file_token, n)
         else:
-            return_value, analyzed_data = get_analysis_data(token, n, columns)
+            status, result = analysis_data(file_token, n, columns)
             
-        if (return_value != 0):
-            return jsonify({"error": {"message": return_value}}), 400
-        
-        return jsonify({"data": {"message": "Analysis completed successfully.", "analysis" :analyzed_data}}), 200
+        if status == 0:
+            return jsonify({"status": "success", "data": result}), 200
+        elif status == 1:
+            return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "error", "message": result}), 500
+        else:
+            return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
     
     except Exception as e:
         return jsonify({"error": {"message": str(e)}}), 500
