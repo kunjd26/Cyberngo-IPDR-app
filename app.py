@@ -175,9 +175,11 @@ def status_file_endpoint():
         status, result = get_file_status(file_token)
             
         if status == 0:
-            return jsonify({"status": "success", "data": result}), 200
+            return jsonify({"status": "success", "message": result}), 200
         elif status == 1:
             return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "error", "message": result}), 500
         else:
             return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
     
@@ -200,8 +202,8 @@ def recent_file_endpoint():
             
         if status == 0:
             return jsonify({"status": "success", "data": result}), 200
-        elif status == 1:
-            return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "fail", "message": result}), 500
         else:
             return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
     

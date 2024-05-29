@@ -20,10 +20,15 @@ def get_file_status(file_token):
         # Get the status of the file.
         cursor = connection.cursor()
         cursor.execute('SELECT status FROM file_records WHERE file_token = ?', (file_token,))
-        status = cursor.fetchone()[0]
+        status = cursor.fetchone()
 
         # Close the connection.
         connection.close()
+
+        if status is None:
+            return 1, "File not found."
+        else:
+            status = status[0]
 
         # Map status to status message.
         return 0, FILE_STATUS_CODES[str(status)]
@@ -72,14 +77,14 @@ def get_recent_files(LIMIT=5):
         cursor = connection.cursor()
 
         # Get the recent files.
-        cursor.execute('SELECT file_token, status FROM file_records ORDER BY timestamp DESC LIMIT ?', (LIMIT,))
+        cursor.execute('SELECT * FROM file_records ORDER BY timestamp DESC LIMIT ?', (LIMIT,))
         data = cursor.fetchall()
 
         # Close the connection.
         connection.close()
 
         # Add status messages to the data.
-        data = [{"file_token": file_token, "file_status_code": status, "file_status_message": FILE_STATUS_CODES[str(status)]} for file_token, status in data]
+        data = [{"timestamp": timestamp, "file_token": file_token, "file_status_code": status, "file_status_message": FILE_STATUS_CODES[str(status)]} for timestamp, file_token, status in data]
 
         return 0, data
 
