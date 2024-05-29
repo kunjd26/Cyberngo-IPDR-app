@@ -38,7 +38,7 @@ def get_file_status(file_token):
     
 
 # Update or insert the file status in the database.
-def update_file_status(file_token, status):
+def update_file_status(file_token, status, file_name="None"):
     try:
         # Connect to the database.
         connection = sqlite3.connect('cyberngo.db')
@@ -52,7 +52,7 @@ def update_file_status(file_token, status):
         if data is None:
             # If the file_token does not exist, insert it with the current timestamp and status as 0.
             timestamp = str(int(time.time()))
-            cursor.execute('INSERT INTO file_records (file_token, status, timestamp) VALUES (?, ?, ?)', (file_token, 0, timestamp))
+            cursor.execute('INSERT INTO file_records (file_name, file_token, status, timestamp) VALUES (?, ?, ?, ?)', (file_name, file_token, 0, timestamp))
         else:
             # If the file_token exists, update its status.
             cursor.execute('UPDATE file_records SET status = ? WHERE file_token = ?', (status, file_token))
@@ -83,8 +83,11 @@ def get_recent_files(LIMIT=5):
         # Close the connection.
         connection.close()
 
+        if not data:
+            return 1, "No files found."
+
         # Add status messages to the data.
-        data = [{"timestamp": timestamp, "file_token": file_token, "file_status_code": status, "file_status_message": FILE_STATUS_CODES[str(status)]} for timestamp, file_token, status in data]
+        data = [{"file_name": file_name, "file_token": file_token, "file_status_code": status, "timestamp": timestamp, "file_status_message": FILE_STATUS_CODES[str(status)]} for file_name, file_token, status, timestamp  in data]
 
         return 0, data
 

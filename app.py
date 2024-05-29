@@ -27,7 +27,7 @@ def upload_file_endpoint():
 
         if status == 0:
             # Update the file status to 0 (uploaded).
-            status1, result1 = update_file_status(result, 0)
+            status1, result1 = update_file_status(result, 0, file.filename)
             if status1 == 0:
                 return jsonify({"status": "success", "message": "File uploaded successfully.", "token": result}), 200
             else:
@@ -202,6 +202,8 @@ def recent_file_endpoint():
             
         if status == 0:
             return jsonify({"status": "success", "data": result}), 200
+        elif status == 1:
+            return jsonify({"status": "fail", "message": result}), 400
         elif status == 2:
             return jsonify({"status": "fail", "message": result}), 500
         else:
