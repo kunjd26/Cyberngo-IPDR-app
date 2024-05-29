@@ -37,7 +37,7 @@ def analysis_data(file_token, n=10, columns=None):
             top_ports = df['destination port'].value_counts().nlargest(n).index.tolist()
             top_asn = df['asn'].value_counts().nlargest(n).index.tolist()
             top_as_domain = df['as_domain'].value_counts().nlargest(n).index.tolist()
-            top_country = df['country_name'].value_counts().nlargest(n).index.tolist()
+            top_country = df['country name'].value_counts().nlargest(n).index.tolist()
 
             # Put in a dictionary
             analyzed_data = {

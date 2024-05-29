@@ -71,7 +71,7 @@ def append_fields(file_token, static_database_only=False):
                     print(f"\r{len(ip_details_list)}", end="")
                     # SQL query to fetch IP details for the current IP
                     converted_int_ip = convert_ip(ip)
-                    sql_query = f"SELECT * FROM country_asn WHERE {converted_int_ip} BETWEEN start_ip_int AND end_ip_int"
+                    sql_query = f"SELECT * FROM country_asn WHERE {converted_int_ip} BETWEEN start_ip_int AND end_ip_int LIMIT 1"
 
                     # Execute the SQL query and fetch data into a new DataFrame
                     ip_details_df = pd.read_sql_query(sql_query, connection)
@@ -123,7 +123,7 @@ def append_fields(file_token, static_database_only=False):
 
                     # SQL query to fetch IP details for the current IP
                     converted_int_ip = convert_ip(ip)
-                    sql_query = f"SELECT * FROM country_asn WHERE {converted_int_ip} BETWEEN start_ip_int AND end_ip_int"
+                    sql_query = f"SELECT * FROM country_asn WHERE {converted_int_ip} BETWEEN start_ip_int AND end_ip_int LIMIT 1"
 
                     # Execute the SQL query and fetch data into a new DataFrame
                     ip_details_df = pd.read_sql_query(sql_query, connection)

@@ -89,7 +89,7 @@ def read_csv_with_header_detection(file_path):
                     header_row = i
                     break
 
-            df = pd.read_csv(file_path, delimiter=delimiter, skiprows=header_row)
+            df = pd.read_csv(file_path, delimiter=delimiter, skiprows=header_row, low_memory=False)
             return df
         except pd.errors.ParserError:
             continue
