@@ -12,7 +12,7 @@ def download_file(file_token):
         
         # Check if the file exists.
         if not os.path.isfile(file_path):
-            return 1, "Invalid token provided."
+            return 1, "File not found."
         
         return 0, file_path
     

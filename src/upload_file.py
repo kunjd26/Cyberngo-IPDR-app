@@ -14,7 +14,7 @@ def upload_file(file):
             return 1, "File type not allowed."
         
         # Generate a token for the file.
-        token = uuid.uuid4()
+        token = str(uuid.uuid4())
         new_filename = f"uploaded-{token}.csv"
 
         # Create the upload folder if it doesn't exist.
