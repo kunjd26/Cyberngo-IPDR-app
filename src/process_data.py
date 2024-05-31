@@ -32,9 +32,15 @@ def analysis_data(file_token, n=10, columns=None):
                 else:
                     value_counts = df[column].value_counts()
                     top_values = value_counts.nlargest(n).index.tolist()
+                    top_counts = value_counts.nlargest(n).tolist()
                     top_percentages = (value_counts.nlargest(n) / len(df) * 100).round(2).tolist()
                     other_percentage = round(100 - sum(top_percentages), 2)
-                    analyzed_data[column] = list(zip(top_values, top_percentages)) + [('other', other_percentage)]
+                    other_count = len(df) - sum(top_counts)
+                    
+                    analyzed_data[column] = [
+                        {"value": val, "percentage": pct, "record_count": count}
+                        for val, pct, count in zip(top_values, top_percentages, top_counts)
+                    ] + [{"value": "other", "percentage": other_percentage, "record_count": other_count}]
         else:
             # Define columns to analyze by default
             default_columns = ['destination ip', 'destination port', 'asn', 'as_domain', 'country name']
@@ -45,9 +51,15 @@ def analysis_data(file_token, n=10, columns=None):
                 else:
                     value_counts = df[column].value_counts()
                     top_values = value_counts.nlargest(n).index.tolist()
+                    top_counts = value_counts.nlargest(n).tolist()
                     top_percentages = (value_counts.nlargest(n) / len(df) * 100).round(2).tolist()
                     other_percentage = round(100 - sum(top_percentages), 2)
-                    analyzed_data[column] = list(zip(top_values, top_percentages)) + [('other', other_percentage)]
+                    other_count = len(df) - sum(top_counts)
+                    
+                    analyzed_data[column] = [
+                        {"value": val, "percentage": pct, "record_count": count}
+                        for val, pct, count in zip(top_values, top_percentages, top_counts)
+                    ] + [{"value": "other", "percentage": other_percentage, "record_count": other_count}]
                     
         return 0, analyzed_data
 
