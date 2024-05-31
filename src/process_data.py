@@ -30,24 +30,25 @@ def analysis_data(file_token, n=10, columns=None):
                 if column not in df.columns:
                     return 1, f"Column {column} does not exist."
                 else:
-                    top_values = df[column].value_counts().nlargest(n).index.tolist()
-                    analyzed_data[column] = top_values
+                    value_counts = df[column].value_counts()
+                    top_values = value_counts.nlargest(n).index.tolist()
+                    top_percentages = (value_counts.nlargest(n) / len(df) * 100).round(2).tolist()
+                    other_percentage = round(100 - sum(top_percentages), 2)
+                    analyzed_data[column] = list(zip(top_values, top_percentages)) + [('other', other_percentage)]
         else:
-            top_ips = df['destination ip'].value_counts().nlargest(n).index.tolist()
-            top_ports = df['destination port'].value_counts().nlargest(n).index.tolist()
-            top_asn = df['asn'].value_counts().nlargest(n).index.tolist()
-            top_as_domain = df['as_domain'].value_counts().nlargest(n).index.tolist()
-            top_country = df['country name'].value_counts().nlargest(n).index.tolist()
-
-            # Put in a dictionary
-            analyzed_data = {
-                'destination ip': top_ips,
-                'destination port': top_ports,
-                'asn': top_asn,
-                'as_domain': top_as_domain,
-                'country_name': top_country
-            }
+            # Define columns to analyze by default
+            default_columns = ['destination ip', 'destination port', 'asn', 'as_domain', 'country name']
             
+            for column in default_columns:
+                if column not in df.columns:
+                    return 1, f"Column {column} does not exist."
+                else:
+                    value_counts = df[column].value_counts()
+                    top_values = value_counts.nlargest(n).index.tolist()
+                    top_percentages = (value_counts.nlargest(n) / len(df) * 100).round(2).tolist()
+                    other_percentage = round(100 - sum(top_percentages), 2)
+                    analyzed_data[column] = list(zip(top_values, top_percentages)) + [('other', other_percentage)]
+                    
         return 0, analyzed_data
 
     except Exception as e:
