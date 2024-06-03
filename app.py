@@ -6,6 +6,7 @@ from src.process_file import append_fields
 from src.download_file import download_file
 from src.process_data import analysis_data
 from src.file_status import get_file_status, update_file_status, get_recent_files
+from src.delete_file import delete_file
 
 app = Flask(__name__)
 CORS(app)
@@ -206,6 +207,30 @@ def recent_file_endpoint():
             return jsonify({"status": "fail", "message": result}), 400
         elif status == 2:
             return jsonify({"status": "fail", "message": result}), 500
+        else:
+            return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
+    
+    except Exception as e:
+        return jsonify({"error": {"message": str(e)}}), 500
+
+
+# Delete file endpoint
+@app.route('/api/delete-file', methods=['DELETE'])
+def delete_file_endpoint():
+    try:
+        # Check if the token is provided.
+        file_token = request.args.get('token')
+        if not file_token:
+            return jsonify({"status": "fail", "message": "Token not provided."}), 400
+        
+        status, result = delete_file(file_token)
+            
+        if status == 0:
+            return jsonify({"status": "success", "message": result}), 200
+        elif status == 1:
+            return jsonify({"status": "fail", "message": result}), 400
+        elif status == 2:
+            return jsonify({"status": "error", "message": result}), 500
         else:
             return jsonify({"status": "error", "message": "Unknown error occurred."}), 500
     
