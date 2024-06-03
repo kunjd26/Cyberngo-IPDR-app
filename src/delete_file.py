@@ -14,11 +14,13 @@ def delete_file(file_token):
         cursor = connection.cursor()
 
         # Check if the file_token exists in the table.
-        cursor.execute('SELECT file_token FROM file_records WHERE file_token = ?', (file_token,))
+        cursor.execute('SELECT status FROM file_records WHERE file_token = ?', (file_token,))
         data = cursor.fetchone()
 
         if data is None:
             return 1, "File not found."
+        elif data[0] == 1:
+            return 1, "File is being processed. Cannot delete the file."
         else:
             # If the file_token exists, update its status.
             cursor.execute('DELETE FROM file_records WHERE file_token = ?', (file_token,))
