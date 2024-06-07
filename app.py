@@ -7,13 +7,31 @@ from src.download_file import download_file
 from src.process_data import analysis_data
 from src.file_status import get_file_status, update_file_status, get_recent_files
 from src.delete_file import delete_file
+from flasgger import Swagger
 
 app = Flask(__name__)
 CORS(app)
+swagger = Swagger(app)
 
 # Upload endpoint
 @app.route('/api/upload', methods=['POST'])
 def upload_file_endpoint():
+    """
+    Upload File Endpoint
+    ---
+    parameters:
+      - name: file
+        in: formData
+        type: file
+        required: true
+    responses:
+      200:
+        description: File uploaded successfully
+      400:
+        description: No file part present in request or no file is selected for upload
+      500:
+        description: Error occurred while uploading file
+    """
     try:
         # Check if the request contains a file.
         if 'file' not in request.files:
@@ -47,6 +65,28 @@ def upload_file_endpoint():
 # Execute endpoint
 @app.route('/api/execute/', methods=['GET'])
 def execute_file_endpoint():
+    """
+    Execute File Endpoint
+    ---
+    parameters:
+      - name: token
+        in: query
+        type: string
+        required: true
+        description: The token of the file to be executed.
+      - name: static_db_only
+        in: query
+        type: boolean
+        required: false
+        description: Whether to use only the static database or not.
+    responses:
+      200:
+        description: File executed successfully.
+      400:
+        description: Token not provided or error occurred while parsing the file.
+      500:
+        description: Error occurred while executing the file.
+    """
     try:
         # Check if the token is provided.
         file_token = request.args.get('token')
@@ -109,6 +149,23 @@ def execute_file_endpoint():
 # Download endpoint
 @app.route('/api/download/', methods=['GET'])
 def download_file_endpoint():
+    """
+    Download File Endpoint
+    ---
+    parameters:
+      - name: token
+        in: query
+        type: string
+        required: true
+        description: The token of the file to be downloaded.
+    responses:
+      200:
+        description: File downloaded successfully.
+      400:
+        description: Token not provided or error occurred while downloading the file.
+      500:
+        description: Error occurred while downloading the file or unknown error occurred.
+    """
     try:
         # Check if the token is provided.
         file_token = request.args.get('token')
@@ -133,6 +190,33 @@ def download_file_endpoint():
 # Analysis endpoint
 @app.route('/api/analysis/', methods=['GET'])
 def analysis_file_endpoint():
+    """
+    Analysis File Endpoint
+    ---
+    parameters:
+      - name: token
+        in: query
+        type: string
+        required: true
+        description: The token of the file to be analyzed.
+      - name: n
+        in: query
+        type: integer
+        required: false
+        description: The number of rows to be analyzed. Default is 10.
+      - name: columns
+        in: query
+        type: string
+        required: false
+        description: The columns to be analyzed. If not provided, all columns are analyzed.
+    responses:
+      200:
+        description: File analyzed successfully.
+      400:
+        description: Token not provided or error occurred while analyzing the file.
+      500:
+        description: Error occurred while analyzing the file or unknown error occurred.
+    """
     try:
         # Check if the token is provided.
         file_token = request.args.get('token')
@@ -167,6 +251,23 @@ def analysis_file_endpoint():
 # Status endpoint
 @app.route('/api/status/', methods=['GET'])
 def status_file_endpoint():
+    """
+    Status File Endpoint
+    ---
+    parameters:
+      - name: token
+        in: query
+        type: string
+        required: true
+        description: The token of the file to check the status.
+    responses:
+      200:
+        description: Status retrieved successfully.
+      400:
+        description: Token not provided or error occurred while retrieving the status.
+      500:
+        description: Error occurred while retrieving the status or unknown error occurred.
+    """
     try:
         # Check if the token is provided.
         file_token = request.args.get('token')
@@ -191,6 +292,23 @@ def status_file_endpoint():
 # Recent file endpoint
 @app.route('/api/recent-files', methods=['GET'])
 def recent_file_endpoint():
+    """
+    Recent Files Endpoint
+    ---
+    parameters:
+      - name: n
+        in: query
+        type: integer
+        required: false
+        description: The number of recent files to be retrieved. Default is 5.
+    responses:
+      200:
+        description: Recent files retrieved successfully.
+      400:
+        description: Error occurred while retrieving the recent files.
+      500:
+        description: Error occurred while retrieving the recent files or unknown error occurred.
+    """
     try:
         # Check if the token is provided.
         n = request.args.get('n')
@@ -217,6 +335,23 @@ def recent_file_endpoint():
 # Delete file endpoint
 @app.route('/api/delete-file', methods=['DELETE'])
 def delete_file_endpoint():
+    """
+    Delete File Endpoint
+    ---
+    parameters:
+      - name: token
+        in: query
+        type: string
+        required: true
+        description: The token of the file to be deleted.
+    responses:
+      200:
+        description: File deleted successfully.
+      400:
+        description: Token not provided or error occurred while deleting the file.
+      500:
+        description: Error occurred while deleting the file or unknown error occurred.
+    """
     try:
         # Check if the token is provided.
         file_token = request.args.get('token')
@@ -240,4 +375,4 @@ def delete_file_endpoint():
 
 # Run the Flask app
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000)
