@@ -28,7 +28,7 @@ def parse_file(file_token):
             'roaming circle': ['home_roaming_circle', 'roaming circle'],
             'source ip': ['source_ip', 'source ip', 'public ip address'],
             'source port': ['source port', 'public ip port', 'source_port'],
-            'destination ip': ['destination ip', 'destination ip address', 'destination_ip'],
+            'destination ip': ['destination ip', 'destination ip address', 'destination_ip', 'destination_ip4'],
             'destination port': ['destination port', 'destination_port'],
             'imei/mac id': ['imei', 'source mac-id address/other device identification number', 'mac id', 'imei/mac id'],
             'imsi': ['imsi'],
