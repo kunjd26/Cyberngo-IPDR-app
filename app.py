@@ -432,17 +432,17 @@ def get_file_header_endpoint():
     Get File Header Endpoint
     ---
     parameters:
-    - name: token
+      - name: token
         in: query
         type: string
         required: true
         description: The token of the file to retrieve the header from.
     responses:
-    200:
+      200:
         description: Header retrieved successfully.
-    400:
+      400:
         description: Token not provided or error occurred while parsing the file.
-    500:
+      500:
         description: Error occurred while updating the file status or unknown error occurred.
     """
     try:
@@ -477,17 +477,17 @@ def dynamic_execute_file_endpoint():
     Execute File with Dynamic Parser Endpoint
     ---
     parameters:
-    - name: token
+      - name: token
         in: query
         type: string
         required: true
         description: The token of the file to be executed.
-    - name: static_db_only
+      - name: static_db_only
         in: query
         type: boolean
         required: false
         description: Whether to use only the static database or not.
-    - name: column_mapping
+      - name: column_mapping
         in: body
         required: true
         schema:
@@ -497,11 +497,11 @@ def dynamic_execute_file_endpoint():
                     type: object
                     description: The column mapping for the dynamic parser.
     responses:
-    200:
+      200:
         description: File executed successfully.
-    400:
+      400:
         description: Token not provided or error occurred while parsing the file.
-    500:
+      500:
         description: Error occurred while executing the file.
     """
     try:
