@@ -3,3 +3,5 @@ static-data-files/
 .vscode/
 __pycache__/
 cyberngo.db
+node_modules/
+.env
