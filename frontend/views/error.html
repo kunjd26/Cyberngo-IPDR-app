@@ -1,3 +1,24 @@
-<h1><%= message %></h1>
-<h2><%= error.status %></h2>
-<pre><%= error.stack %></pre>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <div class="bg-white shadow-md rounded my-6 p-6">
+            <h1 class="text-3xl font-bold mb-4">Error <%= status %>
+            </h1>
+            <p class="text-xl">
+                <%= message %>
+            </p>
+            <pre class="text-gray-500 mt-4"><%= stack %></pre>
+        </div>
+    </div>
+</body>
+
+</html>

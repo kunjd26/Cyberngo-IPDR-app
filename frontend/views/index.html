@@ -1,11 +1,121 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title><%= title %></title>
-    <link rel='stylesheet' href='/stylesheets/style.css' />
-  </head>
-  <body>
-    <h1><%= title %></h1>
-    <p>Welcome to <%= title %></p>
-  </body>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPDR</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+</head>
+
+<body class="bg-gray-100 p-6">
+    <div class="container mx-auto">
+        <h1 class="text-3xl font-bold mb-4">IPDR files</h1>
+        <div class="bg-white shadow-md rounded my-6">
+            <table id="ipdr-table" class="min-w-full bg-white">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 bg-gray-200 text-left">File Name</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">Status Message</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">File Token</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">Timestamp</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <% if (data.length===0) { %>
+                        <tr>
+                            <td colspan="5" class="py-4 px-4 text-center text-gray-500">
+                                No file found
+                            </td>
+                        </tr>
+                        <% } else { %>
+                            <% data.forEach(function(item) { %>
+                                <tr class="border-b">
+                                    <td class="py-2 px-4 text-left">
+                                        <%= item.file_name %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <% if (item.file_status_code===0) { %>
+                                            File uploaded.
+                                            <% } else if (item.file_status_code===1) { %>
+                                                File in progress.
+                                                <% } else if (item.file_status_code===2) { %>
+                                                    File ready for analysis.
+                                                    <% } else if (item.file_status_code===3) { %>
+                                                        Error in file parsing.
+                                                        <% } else if (item.file_status_code===4) { %>
+                                                            Error in file processing.
+                                                            <% } %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <%= item.file_token %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <%= new Date(item.timestamp * 1000).toLocaleString() %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <% if (item.file_status_code===0) { %>
+                                            <label class="inline-flex items-center">
+                                                <input type="checkbox"
+                                                    class="static-db-checkbox form-checkbox h-5 w-5 text-blue-600"
+                                                    data-file-token="<%= item.file_token %>">
+                                                <span class="ml-2 text-gray-700">Only static db?</span>
+                                            </label>
+                                            <button class="bg-blue-500 text-white px-4 py-2 rounded execute-btn"
+                                                data-file-token="<%= item.file_token %>">Execute</button>
+                                            <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn"
+                                                data-file-token="<%= item.file_token %>">Delete</button>
+                                            <% } else if (item.file_status_code===1) { %>
+                                                <button class="bg-gray-400 text-white px-4 py-2 rounded"
+                                                    disabled>Analysis</button>
+                                                <% } else if (item.file_status_code===2) { %>
+                                                    <button
+                                                        class="bg-green-500 text-white px-4 py-2 rounded analysis-btn"
+                                                        data-file-token="<%= item.file_token %>">Analysis</button>
+                                                    <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn"
+                                                        data-file-token="<%= item.file_token %>">Delete</button>
+                                                    <% } else if (item.file_status_code===3 ||
+                                                        item.file_status_code===4) { %>
+                                                        <button
+                                                            class="bg-red-500 text-white px-4 py-2 rounded delete-btn"
+                                                            data-file-token="<%= item.file_token %>">Delete</button>
+                                                        <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTables
+            $('#ipdr-table').DataTable();
+
+            // Use event delegation for dynamically created buttons
+            $(document).on('click', '.execute-btn', function () {
+                const fileToken = $(this).data('file-token');
+                const staticDbCheckbox = $(`.static-db-checkbox[data-file-token="${fileToken}"]`);
+                const staticDbOnly = staticDbCheckbox.is(':checked');
+                window.location.href = `/ipdr-files/execute?file_token=${fileToken}&static_db_only=${staticDbOnly}`;
+            });
+
+            $(document).on('click', '.analysis-btn', function () {
+                const fileToken = $(this).data('file-token');
+                window.location.href = `/ipdr-files/analysis?file_token=${fileToken}`;
+            });
+
+            $(document).on('click', '.delete-btn', function () {
+                const fileToken = $(this).data('file-token');
+                window.location.href = `/ipdr-files/delete?file_token=${fileToken}`;
+            });
+        });
+    </script>
+</body>
+
 </html>
