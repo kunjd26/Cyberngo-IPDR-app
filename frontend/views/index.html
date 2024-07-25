@@ -31,7 +31,7 @@
         </thead>
         <tbody id="data-table-body">
           <% if (data.length === 0) { %>
-          <tr>
+          <tr class="no-data">
             <td colspan="5" class="py-4 px-4 text-center text-gray-500">No file found</td>
           </tr>
           <% } else { %>
@@ -108,8 +108,10 @@
 
   <script>
     $(document).ready(function() {
-      // Initialize DataTables
-      $('#ipdr-table').DataTable();
+      // Initialize DataTables if not empty.
+      if ($('#ipdr-table tbody tr').not('.no-data').length > 0) {
+        $('#ipdr-table').DataTable();
+      }
 
       // Handle file upload
       $('#upload-btn').on('click', function() {
@@ -123,9 +125,8 @@
           const formData = new FormData();
           formData.append('file', file);
 
-          $.ajax({
-            url: '/upload',
-            type: 'POST',
+          $.post({
+            url: '/process/ipdr-file/upload',
             data: formData,
             contentType: false,
             processData: false,
@@ -168,7 +169,7 @@
 
       $(document).on('click', '.delete-btn', function() {
         const fileToken = $(this).data('file-token');
-        window.location.href = `/ipdr-files/delete?file_token=${fileToken}`;
+        window.location.href = `/process/ipdr-files/delete?file_token=${fileToken}`;
       });
     });
   </script>

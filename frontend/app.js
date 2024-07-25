@@ -6,11 +6,13 @@ import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import ejs from "ejs";
+import expressFileUpload from 'express-fileupload';
 
 // Local imports.
 import viewRouter from './routes/views.js';
 import globalErrorHandler from './config/GlobalErrorHandler.js';
 import env from './config/EnvironmentConfig.js';
+import processRouter from './routes/process.js';
 
 // Initialize.
 export const app = express();
@@ -23,6 +25,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(expressFileUpload());
 
 // view engine setup.
 app.set('views', path.join(__dirname, 'views'));
@@ -31,6 +34,7 @@ app.set('view engine', 'html');
 
 // Routes.
 app.use('/', viewRouter);
+app.use('/process', processRouter);
 
 // Global error handler middlewares.
 app.use(globalErrorHandler.notFound);
@@ -40,7 +44,7 @@ const PORT = env.APP_PORT || 3000;
 const APP_URL = env.APP_URL;
 
 app.listen(PORT, () => {
-  console.log(`Server running at ${APP_URL}.`);
+    console.log(`Server running at ${APP_URL}.`);
 });
 
 export default app;
