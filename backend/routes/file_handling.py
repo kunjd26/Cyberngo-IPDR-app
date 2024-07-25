@@ -44,7 +44,7 @@ def get_file_header_endpoint():
             else:
                 return jsonify({"status": "error", "message": result1}), 500
         else:
-            return jsonify({"status": "success", "message": result}), 200
+            return jsonify({"status": "success", "data": result}), 200
 
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPDR Header</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 p-6">
+  <div class="container mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-3xl font-bold">IPDR Header</h1>
+      <button id="execute-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Execute with Dynamic Parser</button>
+    </div>
+    <div class="bg-white shadow-md rounded my-6">
+      <table id="ipdr-header-table" class="min-w-full bg-white">
+        <thead>
+          <tr>
+            <th class="py-2 px-4 bg-gray-200 text-left">Column Name</th>
+            <th class="py-2 px-4 bg-gray-200 text-left">Destination IP</th>
+            <th class="py-2 px-4 bg-gray-200 text-left">Destination Port</th>
+            <th class="py-2 px-4 bg-gray-200 text-left">Selected Columns</th>
+          </tr>
+        </thead>
+        <tbody id="data-table-body">
+          <% data.forEach(function (column, index) { %>
+          <tr class="border-b">
+            <td class="py-2 px-4 text-left">
+              <input type="text" class="form-input w-full column-name" value="<%= column %>">
+            </td>
+            <td class="py-2 px-4 text-left">
+              <input type="radio" name="destination-ip" value="<%= column %>">
+            </td>
+            <td class="py-2 px-4 text-left">
+              <input type="radio" name="destination-port" value="<%= column %>">
+            </td>
+            <td class="py-2 px-4 text-left">
+              <input type="checkbox" name="selected-columns" value="<%= column %>">
+            </td>
+          </tr>
+          <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      // Initialize state for selected destination IP and port
+      let destinationIp = null;
+      let destinationPort = null;
+      const fileToken = '<%= file_token %>'; // Assuming file_token is passed to the template
+      const staticDbOnly = '<%= static_db_only %>'; // Assuming static_db_only is passed to the template
+
+      // Update state on radio button change
+      $('input[name="destination-ip"]').on('change', function() {
+        destinationIp = $(this).val();
+        $('input[name="destination-port"][value="' + destinationIp + '"]').prop('checked', false);
+        updateCheckboxState();
+      });
+
+      $('input[name="destination-port"]').on('change', function() {
+        destinationPort = $(this).val();
+        $('input[name="destination-ip"][value="' + destinationPort + '"]').prop('checked', false);
+        updateCheckboxState();
+      });
+
+      // Function to update the state of checkboxes
+      function updateCheckboxState() {
+        $('input[name="selected-columns"]').prop('disabled', false).prop('checked', false);
+        if (destinationIp) {
+          $('input[name="selected-columns"][value="' + destinationIp + '"]').prop('disabled', true);
+        }
+        if (destinationPort) {
+          $('input[name="selected-columns"][value="' + destinationPort + '"]').prop('disabled', true);
+        }
+      }
+
+      // Handle execute button click
+      $('#execute-btn').on('click', function() {
+        if (!destinationIp || !destinationPort) {
+          alert('Please select both Destination IP and Destination Port.');
+          return;
+        }
+
+        const columnMapping = {
+          "destination ip": [destinationIp],
+          "destination port": [destinationPort]
+        };
+
+        const selectedNames = new Set();
+        let valid = true;
+
+        $('input[name="selected-columns"]:checked').each(function() {
+          const newName = $(this).closest('tr').find('input[type="text"]').val();
+          const originalName = $(this).val();
+
+          if (!newName) {
+            alert('Selected column names cannot be empty.');
+            valid = false;
+            return false;
+          }
+
+          if (selectedNames.has(newName)) {
+            alert('Selected column names must be unique.');
+            valid = false;
+            return false;
+          }
+
+          selectedNames.add(newName);
+          columnMapping[newName] = [originalName];
+        });
+
+        if (!valid) return;
+
+        $.post({
+          url: `/process/ipdr-files/execute-dynamic?file_token=${fileToken}&static_db_only=${staticDbOnly}`,
+          contentType: 'application/json',
+          data: {
+            column_mapping: columnMapping
+          },
+          success: function(response) {
+            // Handle success
+            alert('Request successful.');
+          },
+          error: function(error) {
+            // Handle error
+            alert('Request failed.');
+          }
+        });
+      });
+    });
+  </script>
+</body>
+
+</html>

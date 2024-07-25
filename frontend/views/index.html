@@ -161,9 +161,11 @@
       $('#ok-btn').on('click', function() {
         const staticDbOnly = $('#static-db-checkbox').is(':checked');
         const parserType = $('input[name="parser-type"]:checked').val();
-        const endpoint = parserType === 'dynamic' ? '/process/ipdr-files/execute-dynamic' : '/process/ipdr-files/execute-general';
-
-        window.location.href = `${endpoint}?file_token=${selectedFileToken}&static_db_only=${staticDbOnly}`;
+        if (parserType === 'dynamic') {
+          window.location.href = `/ipdr-header/${selectedFileToken}?static_db_only=${staticDbOnly}`;
+        } else {
+          window.location.href = `/process/ipdr-files/execute-general?file_token=${selectedFileToken}&static_db_only=${staticDbOnly}`;
+        }
       });
 
       $(document).on('click', '.analysis-btn', function() {
