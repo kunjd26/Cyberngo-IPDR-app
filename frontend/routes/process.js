@@ -48,10 +48,15 @@ router.get('/ipdr-files/delete', async function (req, res, next) {
     }
 });
 
-router.get('/ipdr-files/execute', function (req, res, next) {
+// Execute ipdr file using general parser.
+router.get('/ipdr-files/execute-general', function (req, res, next) {
     try {
         axios.get(`${env.SERVER_URL}/api/ipdr-files/execute?token=${req.query.file_token}`);
-        return res.redirect('/');
+
+        setTimeout(() => {
+            return res.redirect('/');
+        }, 500);
+
     } catch (error) {
         if (error.response) {
             globalErrorHandler.notFound(req, res, next);

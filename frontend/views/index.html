@@ -110,7 +110,11 @@
     $(document).ready(function() {
       // Initialize DataTables if not empty.
       if ($('#ipdr-table tbody tr').not('.no-data').length > 0) {
-        $('#ipdr-table').DataTable();
+        $('#ipdr-table').DataTable({
+          "order": [
+            [3, "desc"]
+          ]
+        });
       }
 
       // Handle file upload
@@ -157,7 +161,7 @@
       $('#ok-btn').on('click', function() {
         const staticDbOnly = $('#static-db-checkbox').is(':checked');
         const parserType = $('input[name="parser-type"]:checked').val();
-        const endpoint = parserType === 'dynamic' ? '/dynamic-parser' : '/general-parser';
+        const endpoint = parserType === 'dynamic' ? '/process/ipdr-files/execute-dynamic' : '/process/ipdr-files/execute-general';
 
         window.location.href = `${endpoint}?file_token=${selectedFileToken}&static_db_only=${staticDbOnly}`;
       });
