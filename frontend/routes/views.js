@@ -44,4 +44,17 @@ router.get('/ipdr-files/execute', function (req, res, next) {
     }
 });
 
+router.post('/upload', function (req, res, next) {
+    try {
+        console.log(req.files);
+        res.redirect('/');
+    } catch (error) {
+        if (error.response) {
+            globalErrorHandler.notFound(req, res, next);
+        } else {
+            next(error);
+        }
+    }
+});
+
 export default router;
