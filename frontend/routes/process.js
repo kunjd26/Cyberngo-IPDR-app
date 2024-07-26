@@ -66,20 +66,15 @@ router.get('/ipdr-files/execute-general', function (req, res, next) {
     }
 });
 
-router.post('/ipdr-files/execute-dynamic', async function (req, res, next) {
+router.post('/ipdr-files/execute-dynamic', function (req, res, next) {
     try {
-        console.log("CP:00");
-
-        const response = await axios.post(`${env.SERVER_URL}/api/ipdr-files/execute-dynamic?token=${req.query.file_token}&static_db_only=${req.query.static_db_only}`, {
+        axios.post(`${env.SERVER_URL}/api/ipdr-files/execute/dynamic?token=${req.query.file_token}&static_db_only=${req.query.static_db_only}`, {
             column_mapping: req.body.column_mapping,
         });
 
-        console.log("CP:01", response.data); // Log the response data to ensure the request was successful
-
         return res.redirect('/');
-    } catch (error) {
-        console.error("Error occurred:", error); // Log the error message
 
+    } catch (error) {
         if (error.response) {
             globalErrorHandler.notFound(req, res, next);
         } else {

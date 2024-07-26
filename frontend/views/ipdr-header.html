@@ -119,18 +119,14 @@
         $.post({
           url: `/process/ipdr-files/execute-dynamic?file_token=${fileToken}&static_db_only=${staticDbOnly}`,
           contentType: 'application/json',
-          data: {
+          data: JSON.stringify({
             column_mapping: columnMapping
-          },
-          success: function(response) {
-            // Handle success
-            alert('Request successful.');
-          },
-          error: function(error) {
-            // Handle error
-            alert('Request failed.');
-          }
+          })
         });
+
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 500);
       });
     });
   </script>
