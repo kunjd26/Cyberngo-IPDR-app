@@ -4,12 +4,39 @@ import pandas as pd
 # Folder to store uploaded files and generated files
 UPLOAD_FOLDER = os.path.join("files", "uploaded")
 PARSED_FOLDER = os.path.join("files", "parsed")
+PROCESSED_FOLDER = os.path.join("files", "processed")
 
 
 def get_file_header(file_token):
     try:
         file_name = f"uploaded-{file_token}.csv"
         file_path = os.path.join(UPLOAD_FOLDER, file_name)
+
+        if not os.path.isfile(file_path):
+            return 1, "File not found."
+
+        # Process the file
+        df = read_csv_with_header_detection(file_path)
+
+        if len(df.columns) <= 1:
+            return 1, "No columns detected."
+
+        # Strip whitespace from column names
+        df.columns = df.columns.str.strip()
+
+        # Convert column names to lower case for case insensitive comparison
+        df.columns = df.columns.str.lower()
+
+        return 0, df.columns.tolist()
+
+    except Exception as e:
+        return 2, str(e)
+
+
+def get_processed_file_header(file_token):
+    try:
+        file_name = f"processed-{file_token}.csv"
+        file_path = os.path.join(PROCESSED_FOLDER, file_name)
 
         if not os.path.isfile(file_path):
             return 1, "File not found."

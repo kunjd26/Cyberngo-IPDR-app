@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IPDR Data</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+  <style>
+    .dataTables_wrapper {
+      overflow: auto;
+    }
+
+    table.dataTable {
+      width: 100% !important;
+      /* Ensure the table takes full width */
+    }
+
+    .dataTables_scroll {
+      overflow: auto;
+    }
+
+    .dataTables_scrollBody {
+      max-height: 800px;
+      /* Adjust the height of the table body */
+      overflow-y: auto;
+      /* Add vertical scroll */
+    }
+
+    table.dataTable thead th,
+    table.dataTable tbody td {
+      text-align: center;
+      /* Center-align text in cells */
+      white-space: nowrap;
+      /* Prevent text from wrapping */
+    }
+
+    table.dataTable tbody td {
+      text-overflow: ellipsis;
+      /* Add ellipsis if text overflows */
+      overflow: hidden;
+      /* Hide overflowing text */
+    }
+
+    .dataTables_wrapper .dataTables_scroll .dataTables_scrollHead,
+    .dataTables_wrapper .dataTables_scroll .dataTables_scrollBody {
+      width: 100% !important;
+      /* Ensure scroll head and body are full width */
+    }
+  </style>
+</head>
+
+<body class="bg-gray-100 p-6">
+  <div class="container mx-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h1 class="text-3xl font-bold">IPDR Data</h1>
+      <button id="download-csv-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Download CSV</button>
+    </div>
+    <div class="bg-white shadow-md rounded my-6">
+      <div class="overflow-x-auto">
+        <table id="ipdr-data-table" class="min-w-full bg-white">
+          <thead>
+            <!-- Headers will be populated dynamically -->
+          </thead>
+          <tbody id="data-table-body">
+            <!-- Rows will be populated dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    $(document).ready(function() {
+      // Parse CSV data
+      const csvData = `<%- data %>`;
+      const parsedData = Papa.parse(csvData, {
+        header: true,
+        skipEmptyLines: true
+      });
+
+      // Extract headers and rows
+      const headers = parsedData.meta.fields;
+      const rows = parsedData.data;
+
+      // Initialize DataTable with parsed data
+      $('#ipdr-data-table').DataTable({
+        data: rows,
+        columns: headers.map(header => ({
+          title: header,
+          data: header
+        })),
+        order: [],
+        pageLength: 100,
+        scrollX: true, // Enable horizontal scrolling
+        scrollY: '550px', // Set vertical scrolling height (adjust as needed)
+        autoWidth: true,
+        lengthMenu: [10, 25, 50, 100], // Options for rows per page
+        responsive: true // Ensure table is responsive
+      });
+
+      // Handle CSV download
+      $('#download-csv-btn').on('click', function() {
+        if (rows.length === 0) {
+          alert('No data available for download.');
+          return;
+        }
+
+        const fileName = '<%= file_token %>.csv';
+        const csvRows = [];
+        const headerRow = headers.join(',');
+        csvRows.push(headerRow);
+
+        rows.forEach(row => {
+          const rowValues = headers.map(header => row[header] || '');
+          csvRows.push(rowValues.join(','));
+        });
+
+        const csvContent = csvRows.join('\n');
+        const blob = new Blob([csvContent], {
+          type: 'text/csv;charset=utf-8;'
+        });
+        saveAs(blob, fileName);
+      });
+    });
+  </script>
+</body>
+
+</html>

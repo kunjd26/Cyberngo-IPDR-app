@@ -17,6 +17,7 @@ from routes.status import status_bp
 from routes.recent_files import recent_files_bp
 from routes.delete import delete_bp
 from routes.file_handling import file_header_bp
+from routes.file_handling import processed_file_header_bp
 from routes.dynamic_execute import dynamic_execute_bp
 
 app.register_blueprint(upload_bp)
@@ -27,6 +28,7 @@ app.register_blueprint(status_bp)
 app.register_blueprint(recent_files_bp)
 app.register_blueprint(delete_bp)
 app.register_blueprint(file_header_bp)
+app.register_blueprint(processed_file_header_bp)
 app.register_blueprint(dynamic_execute_bp)
 
 # Run the Flask app

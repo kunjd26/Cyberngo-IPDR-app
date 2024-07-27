@@ -170,7 +170,7 @@
 
       $(document).on('click', '.analysis-btn', function() {
         const fileToken = $(this).data('file-token');
-        window.location.href = `/ipdr-files/analysis?file_token=${fileToken}`;
+        window.location.href = `/ipdr-files/${fileToken}/analysis`;
       });
 
       $(document).on('click', '.delete-btn', function() {
