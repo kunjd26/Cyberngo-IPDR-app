@@ -25,7 +25,9 @@ router.get('/ipdr-header/:uuid', async function (req, res, next) {
         const data = response.data.data;
         return res.render('ipdr-header', { data, file_token: req.params.uuid, static_db_only });
     } catch (error) {
-        if (error.response) {
+        if (error.response && error.response.status === 400) {
+            res.redirect('/#Error in file parsing. Not execute through dynamic parser.');
+        } else if (error.response && error.response.status === 404) {
             globalErrorHandler.notFound(req, res, next);
         } else {
             next(error);
@@ -55,7 +57,6 @@ router.get('/ipdr-files/:uuid/show', async function (req, res, next) {
     try {
         const response = await axios.get(`${env.SERVER_URL}/api/ipdr-files/download?token=${req.params.uuid}`);
         const data = response.data;
-        console.log(data);
         return res.render('ipdr-show', { data, file_token: req.params.uuid });
     } catch (error) {
         if (error.response) {

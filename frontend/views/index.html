@@ -2,183 +2,191 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IPDR</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
-  <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPDR</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.11.5/css/jquery.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
 </head>
 
 <body class="bg-gray-100 p-6">
-  <div class="container mx-auto">
-    <div class="flex justify-between items-center mb-4">
-      <h1 class="text-3xl font-bold">IPDR files</h1>
-      <button id="upload-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Upload CSV</button>
-      <input type="file" id="file-input" accept=".csv" class="hidden">
+    <div class="container mx-auto">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-3xl font-bold">IPDR files</h1>
+            <button id="upload-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Upload CSV</button>
+            <input type="file" id="file-input" accept=".csv" class="hidden">
+        </div>
+        <div class="bg-white shadow-md rounded my-6">
+            <table id="ipdr-table" class="min-w-full bg-white">
+                <thead>
+                    <tr>
+                        <th class="py-2 px-4 bg-gray-200 text-left">File Name</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">Status Message</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">File Token</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">Timestamp</th>
+                        <th class="py-2 px-4 bg-gray-200 text-left">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="data-table-body">
+                    <% if (data.length===0) { %>
+                        <tr class="no-data">
+                            <td colspan="5" class="py-4 px-4 text-center text-gray-500">No file found</td>
+                        </tr>
+                        <% } else { %>
+                            <% data.forEach(function (item) { %>
+                                <tr class="border-b">
+                                    <td class="py-2 px-4 text-left">
+                                        <%= item.file_name %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <% if (item.file_status_code===0) { %>
+                                            File uploaded.
+                                            <% } else if (item.file_status_code===1) { %>
+                                                File in progress.
+                                                <% } else if (item.file_status_code===2) { %>
+                                                    File ready for analysis.
+                                                    <% } else if (item.file_status_code===3) { %>
+                                                        Error in file parsing.
+                                                        <% } else if (item.file_status_code===4) { %>
+                                                            Error in file processing.
+                                                            <% } %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <%= item.file_token %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <%= new Date(item.timestamp * 1000).toLocaleString() %>
+                                    </td>
+                                    <td class="py-2 px-4 text-left">
+                                        <% if (item.file_status_code===0) { %>
+                                            <button class="bg-blue-500 text-white px-4 py-2 rounded execute-btn"
+                                                data-file-token="<%= item.file_token %>">Execute</button>
+                                            <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn"
+                                                data-file-token="<%= item.file_token %>">Delete</button>
+                                            <% } else if (item.file_status_code===1) { %>
+                                                <button class="bg-gray-400 text-white px-4 py-2 rounded"
+                                                    disabled>Analysis</button>
+                                                <% } else if (item.file_status_code===2) { %>
+                                                    <button
+                                                        class="bg-green-500 text-white px-4 py-2 rounded analysis-btn"
+                                                        data-file-token="<%= item.file_token %>">Analysis</button>
+                                                    <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn"
+                                                        data-file-token="<%= item.file_token %>">Delete</button>
+                                                    <% } else if (item.file_status_code===3 ||
+                                                        item.file_status_code===4) { %>
+                                                        <button
+                                                            class="bg-red-500 text-white px-4 py-2 rounded delete-btn"
+                                                            data-file-token="<%= item.file_token %>">Delete</button>
+                                                        <% } %>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
     </div>
-    <div class="bg-white shadow-md rounded my-6">
-      <table id="ipdr-table" class="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th class="py-2 px-4 bg-gray-200 text-left">File Name</th>
-            <th class="py-2 px-4 bg-gray-200 text-left">Status Message</th>
-            <th class="py-2 px-4 bg-gray-200 text-left">File Token</th>
-            <th class="py-2 px-4 bg-gray-200 text-left">Timestamp</th>
-            <th class="py-2 px-4 bg-gray-200 text-left">Action</th>
-          </tr>
-        </thead>
-        <tbody id="data-table-body">
-          <% if (data.length === 0) { %>
-          <tr class="no-data">
-            <td colspan="5" class="py-4 px-4 text-center text-gray-500">No file found</td>
-          </tr>
-          <% } else { %>
-          <% data.forEach(function (item) { %>
-          <tr class="border-b">
-            <td class="py-2 px-4 text-left">
-              <%= item.file_name %>
-            </td>
-            <td class="py-2 px-4 text-left">
-              <% if (item.file_status_code === 0) { %>
-              File uploaded.
-              <% } else if (item.file_status_code === 1) { %>
-              File in progress.
-              <% } else if (item.file_status_code === 2) { %>
-              File ready for analysis.
-              <% } else if (item.file_status_code === 3) { %>
-              Error in file parsing.
-              <% } else if (item.file_status_code === 4) { %>
-              Error in file processing.
-              <% } %>
-            </td>
-            <td class="py-2 px-4 text-left">
-              <%= item.file_token %>
-            </td>
-            <td class="py-2 px-4 text-left">
-              <%= new Date(item.timestamp * 1000).toLocaleString() %>
-            </td>
-            <td class="py-2 px-4 text-left">
-              <% if (item.file_status_code === 0) { %>
-              <button class="bg-blue-500 text-white px-4 py-2 rounded execute-btn" data-file-token="<%= item.file_token %>">Execute</button>
-              <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn" data-file-token="<%= item.file_token %>">Delete</button>
-              <% } else if (item.file_status_code === 1) { %>
-              <button class="bg-gray-400 text-white px-4 py-2 rounded" disabled>Analysis</button>
-              <% } else if (item.file_status_code === 2) { %>
-              <button class="bg-green-500 text-white px-4 py-2 rounded analysis-btn" data-file-token="<%= item.file_token %>">Analysis</button>
-              <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn" data-file-token="<%= item.file_token %>">Delete</button>
-              <% } else if (item.file_status_code === 3 || item.file_status_code === 4) { %>
-              <button class="bg-red-500 text-white px-4 py-2 rounded delete-btn" data-file-token="<%= item.file_token %>">Delete</button>
-              <% } %>
-            </td>
-          </tr>
-          <% }); %>
-          <% } %>
-        </tbody>
-      </table>
+
+    <!-- Modal -->
+    <div id="execute-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-lg p-6">
+            <h2 class="text-2xl font-bold mb-4">Execute File</h2>
+            <label class="inline-flex items-center mb-4">
+                <input type="checkbox" id="static-db-checkbox" class="form-checkbox h-5 w-5 text-blue-600">
+                <span class="ml-2 text-gray-700">Only static DB?</span>
+            </label>
+            <div class="mb-4">
+                <label class="block mb-2">Parser Type:</label>
+                <label class="inline-flex items-center">
+                    <input type="radio" name="parser-type" value="general" class="form-radio h-5 w-5 text-blue-600"
+                        checked>
+                    <span class="ml-2 text-gray-700">General Parser</span>
+                </label>
+                <label class="inline-flex items-center ml-4">
+                    <input type="radio" name="parser-type" value="dynamic" class="form-radio h-5 w-5 text-blue-600">
+                    <span class="ml-2 text-gray-700">Dynamic Parser</span>
+                </label>
+            </div>
+            <div class="flex justify-end">
+                <button id="cancel-btn" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
+                <button id="ok-btn" class="bg-blue-500 text-white px-4 py-2 rounded">OK</button>
+            </div>
+        </div>
     </div>
-  </div>
 
-  <!-- Modal -->
-  <div id="execute-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center">
-    <div class="bg-white rounded-lg p-6">
-      <h2 class="text-2xl font-bold mb-4">Execute File</h2>
-      <label class="inline-flex items-center mb-4">
-        <input type="checkbox" id="static-db-checkbox" class="form-checkbox h-5 w-5 text-blue-600">
-        <span class="ml-2 text-gray-700">Only static DB?</span>
-      </label>
-      <div class="mb-4">
-        <label class="block mb-2">Parser Type:</label>
-        <label class="inline-flex items-center">
-          <input type="radio" name="parser-type" value="general" class="form-radio h-5 w-5 text-blue-600" checked>
-          <span class="ml-2 text-gray-700">General Parser</span>
-        </label>
-        <label class="inline-flex items-center ml-4">
-          <input type="radio" name="parser-type" value="dynamic" class="form-radio h-5 w-5 text-blue-600">
-          <span class="ml-2 text-gray-700">Dynamic Parser</span>
-        </label>
-      </div>
-      <div class="flex justify-end">
-        <button id="cancel-btn" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Cancel</button>
-        <button id="ok-btn" class="bg-blue-500 text-white px-4 py-2 rounded">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    $(document).ready(function() {
-      // Initialize DataTables if not empty.
-      if ($('#ipdr-table tbody tr').not('.no-data').length > 0) {
-        $('#ipdr-table').DataTable({
-          "order": [
-            [3, "desc"]
-          ]
-        });
-      }
-
-      // Handle file upload
-      $('#upload-btn').on('click', function() {
-        console.log('Upload button clicked'); // Added console log for debugging
-        $('#file-input').click();
-      });
-
-      $('#file-input').on('change', function() {
-        const file = this.files[0];
-        if (file) {
-          const formData = new FormData();
-          formData.append('file', file);
-
-          $.post({
-            url: '/process/ipdr-file/upload',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-              // Handle success
-              console.log('File uploaded successfully'); // Added console log for debugging
-              location.reload();
-            },
-            error: function(error) {
-              // Handle error
-              alert('File upload failed.');
+    <script>
+        $(document).ready(function () {
+            // Initialize DataTables if not empty.
+            if ($('#ipdr-table tbody tr').not('.no-data').length > 0) {
+                $('#ipdr-table').DataTable({
+                    "order": [
+                        [3, "desc"]
+                    ]
+                });
             }
-          });
-        }
-      });
 
-      // Use event delegation for dynamically created buttons
-      let selectedFileToken = null;
-      $(document).on('click', '.execute-btn', function() {
-        selectedFileToken = $(this).data('file-token');
-        $('#execute-modal').removeClass('hidden');
-      });
+            // Handle file upload
+            $('#upload-btn').on('click', function () {
+                $('#file-input').click();
+            });
 
-      $('#cancel-btn').on('click', function() {
-        $('#execute-modal').addClass('hidden');
-      });
+            $('#file-input').on('change', function () {
+                const file = this.files[0];
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('file', file);
 
-      $('#ok-btn').on('click', function() {
-        const staticDbOnly = $('#static-db-checkbox').is(':checked');
-        const parserType = $('input[name="parser-type"]:checked').val();
-        if (parserType === 'dynamic') {
-          window.location.href = `/ipdr-header/${selectedFileToken}?static_db_only=${staticDbOnly}`;
-        } else {
-          window.location.href = `/process/ipdr-files/execute-general?file_token=${selectedFileToken}&static_db_only=${staticDbOnly}`;
-        }
-      });
+                    $.post({
+                        url: '/process/ipdr-file/upload',
+                        data: formData,
+                        contentType: false,
+                        processData: false,
+                        success: function (response) {
+                            // Handle success
+                            location.reload();
+                        },
+                        error: function (error) {
+                            // Handle error
+                            alert('File upload failed.');
+                        }
+                    });
+                }
+            });
 
-      $(document).on('click', '.analysis-btn', function() {
-        const fileToken = $(this).data('file-token');
-        window.location.href = `/ipdr-files/${fileToken}/analysis`;
-      });
+            // Use event delegation for dynamically created buttons
+            let selectedFileToken = null;
+            $(document).on('click', '.execute-btn', function () {
+                selectedFileToken = $(this).data('file-token');
+                $('#execute-modal').removeClass('hidden');
+            });
 
-      $(document).on('click', '.delete-btn', function() {
-        const fileToken = $(this).data('file-token');
-        window.location.href = `/process/ipdr-files/delete?file_token=${fileToken}`;
-      });
-    });
-  </script>
+            $('#cancel-btn').on('click', function () {
+                $('#execute-modal').addClass('hidden');
+            });
+
+            $('#ok-btn').on('click', function () {
+                const staticDbOnly = $('#static-db-checkbox').is(':checked');
+                const parserType = $('input[name="parser-type"]:checked').val();
+                if (parserType === 'dynamic') {
+                    window.location.href = `/ipdr-header/${selectedFileToken}?static_db_only=${staticDbOnly}`;
+                } else {
+                    window.location.href = `/process/ipdr-files/execute-general?file_token=${selectedFileToken}&static_db_only=${staticDbOnly}`;
+                }
+            });
+
+            $(document).on('click', '.analysis-btn', function () {
+                const fileToken = $(this).data('file-token');
+                window.location.href = `/ipdr-files/${fileToken}/analysis`;
+            });
+
+            $(document).on('click', '.delete-btn', function () {
+                const fileToken = $(this).data('file-token');
+                window.location.href = `/process/ipdr-files/delete?file_token=${fileToken}`;
+            });
+        });
+    </script>
 </body>
 
 </html>

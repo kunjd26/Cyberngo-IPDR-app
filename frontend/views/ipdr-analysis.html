@@ -2,98 +2,96 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>IPDR Dashboard</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    .count-item {
-      margin-bottom: 0.5rem;
-      font-size: 1rem;
-      color: #333;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IPDR Dashboard</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .count-item {
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            color: #333;
+        }
 
-    .count-item span {
-      font-weight: bold;
-    }
-  </style>
+        .count-item span {
+            font-weight: bold;
+        }
+    </style>
 </head>
 
 <body class="bg-gray-100 p-6">
-  <div class="container mx-auto">
-    <div class="flex">
-      <!-- Columns Selection -->
-      <div class="w-1/5 bg-white shadow-md rounded p-4">
-        <h2 class="text-2xl font-bold mb-2">Columns</h2>
-        <div id="columns-container" class="flex flex-col">
-          <% columns.forEach((column, index) => { %>
-          <div class="mb-2">
-            <label>
-              <input type="checkbox" class="mr-1 column-checkbox" value="<%= column %>" <%= index < 10 ? 'checked' : '' %>>
-              <%= column %>
-            </label>
-          </div>
-          <% }) %>
-        </div>
-      </div>
+    <div class="container mx-auto">
+        <div class="flex">
+            <!-- Columns Selection -->
+            <div class="w-1/5 bg-white shadow-md rounded p-4">
+                <h2 class="text-2xl font-bold mb-2">Columns</h2>
+                <div id="columns-container" class="flex flex-col">
+                    <% columns.forEach((column, index)=> { %>
+                        <div class="mb-2">
+                            <label>
+                                <input type="checkbox" class="mr-1 column-checkbox" value="<%= column %>" <%=index < 10
+                                    ? 'checked' : '' %>>
+                                <%= column %>
+                            </label>
+                        </div>
+                        <% }) %>
+                </div>
+            </div>
 
-      <div class="w-4/5 ml-4">
-        <div class="flex justify-between items-center mb-4">
-          <h1 class="text-3xl font-bold">IPDR Dashboard</h1>
-          <div>
-            <select id="view-mode" class="bg-gray-200 text-gray-700 px-4 py-2 rounded mr-2">
-              <option value="graph">Graph</option>
-              <option value="count">Count</option>
-            </select>
-            <button id="show-csv-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Show CSV</button>
-          </div>
-        </div>
+            <div class="w-4/5 ml-4">
+                <div class="flex justify-between items-center mb-4">
+                    <h1 class="text-3xl font-bold">IPDR Dashboard</h1>
+                    <div>
+                        <select id="view-mode" class="bg-gray-200 text-gray-700 px-4 py-2 rounded mr-2">
+                            <option value="graph">Graph</option>
+                            <option value="count">Count</option>
+                        </select>
+                        <button id="show-csv-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Show CSV</button>
+                    </div>
+                </div>
 
-        <!-- Graphs Container -->
-        <div id="graphs-container" class="grid grid-cols-2 gap-4">
-          <!-- Graphs will be dynamically inserted here -->
+                <!-- Graphs Container -->
+                <div id="graphs-container" class="grid grid-cols-2 gap-4">
+                    <!-- Graphs will be dynamically inserted here -->
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-  </div>
 
-  <script>
-    $(document).ready(function() {
-      // Data passed from the server
-      const data = JSON.parse('<%- JSON.stringify(data) %>');
-      const columns = JSON.parse('<%- JSON.stringify(columns) %>');
+    <script>
+        $(document).ready(function () {
+            // Data passed from the server
+            const data = JSON.parse('<%- JSON.stringify(data) %>');
+            const columns = JSON.parse('<%- JSON.stringify(columns) %>');
 
-      console.log('Data:', data);
-      console.log('Columns:', columns);
+            const graphTypes = ['bar', 'line', 'pie'];
+            const randomColor = () => `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`;
+            const randomBorderColor = () => `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
 
-      const graphTypes = ['bar', 'line', 'pie'];
-      const randomColor = () => `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.2)`;
-      const randomBorderColor = () => `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+            // Handle Show CSV button click
+            $('#show-csv-btn').on('click', function () {
+                window.location.href = `/ipdr-files/${'<%= file_token %>'}/show`;
+            });
 
-      // Handle Show CSV button click
-      $('#show-csv-btn').on('click', function() {
-        window.location.href = `/ipdr-files/${'<%= file_token %>'}/show`;
-      });
+            // Handle view mode change
+            $('#view-mode').change(function () {
+                renderView();
+            });
 
-      // Handle view mode change
-      $('#view-mode').change(function() {
-        renderView();
-      });
+            // Render initial graphs
+            renderView();
 
-      // Render initial graphs
-      renderView();
+            // Update graphs on column selection change
+            $('#columns-container').on('change', 'input[type="checkbox"]', function () {
+                renderView();
+            });
 
-      // Update graphs on column selection change
-      $('#columns-container').on('change', 'input[type="checkbox"]', function() {
-        renderView();
-      });
-
-      // Render graph with different types
-      function renderGraph(column, columnData, graphType) {
-        const ctxId = `chart-${column}`;
-        $('#graphs-container').append(`
+            // Render graph with different types
+            function renderGraph(column, columnData, graphType) {
+                const ctxId = `chart-${column}`;
+                $('#graphs-container').append(`
           <div id="graph-${column}" class="bg-white shadow-md rounded p-4">
             <div class="flex justify-between items-center mb-2">
               <h2 class="text-xl font-bold">${column}</h2>
@@ -107,38 +105,38 @@
           </div>
         `);
 
-        const ctx = document.getElementById(ctxId).getContext('2d');
-        const labels = columnData.map(item => item.value);
-        const percentages = columnData.map(item => item.percentage);
+                const ctx = document.getElementById(ctxId).getContext('2d');
+                const labels = columnData.map(item => item.value);
+                const percentages = columnData.map(item => item.percentage);
 
-        const chart = new Chart(ctx, {
-          type: graphType,
-          data: {
-            labels: labels,
-            datasets: [{
-              label: 'Percentage',
-              data: percentages,
-              backgroundColor: graphType === 'pie' ? labels.map(randomColor) : randomColor(),
-              borderColor: graphType === 'pie' ? labels.map(randomBorderColor) : randomBorderColor(),
-              borderWidth: 1
-            }]
-          },
-          options: {
-            scales: graphType === 'pie' ? {} : {
-              y: {
-                beginAtZero: true
-              }
+                const chart = new Chart(ctx, {
+                    type: graphType,
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: 'Percentage',
+                            data: percentages,
+                            backgroundColor: graphType === 'pie' ? labels.map(randomColor) : randomColor(),
+                            borderColor: graphType === 'pie' ? labels.map(randomBorderColor) : randomBorderColor(),
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: graphType === 'pie' ? {} : {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+
+                // Store the chart instance
+                $(`#graph-${column}`).data('chartInstance', chart);
             }
-          }
-        });
 
-        // Store the chart instance
-        $(`#graph-${column}`).data('chartInstance', chart);
-      }
-
-      // Render count
-      function renderCount(column, columnData) {
-        $('#graphs-container').append(`
+            // Render count
+            function renderCount(column, columnData) {
+                $('#graphs-container').append(`
           <div id="graph-${column}" class="bg-white shadow-md rounded p-4">
             <h2 class="text-xl font-bold mb-2">${column}</h2>
             <ul>
@@ -146,37 +144,37 @@
             </ul>
           </div>
         `);
-      }
-
-      // Update graph type on selector change
-      $('#graphs-container').on('change', '.graph-type-selector', function() {
-        const column = $(this).data('column');
-        const graphType = $(this).val();
-        const chartInstance = $(`#graph-${column}`).data('chartInstance');
-
-        if (chartInstance) {
-          chartInstance.destroy();
-        }
-
-        renderGraph(column, data[column], graphType);
-      });
-
-      // Render the view based on the selected mode and columns
-      function renderView() {
-        const viewMode = $('#view-mode').val();
-        $('#graphs-container').empty();
-        columns.forEach(column => {
-          if ($(`#columns-container input[value="${column}"]`).is(':checked')) {
-            if (viewMode === 'graph') {
-              renderGraph(column, data[column], graphTypes[Math.floor(Math.random() * graphTypes.length)]);
-            } else {
-              renderCount(column, data[column]);
             }
-          }
+
+            // Update graph type on selector change
+            $('#graphs-container').on('change', '.graph-type-selector', function () {
+                const column = $(this).data('column');
+                const graphType = $(this).val();
+                const chartInstance = $(`#graph-${column}`).data('chartInstance');
+
+                if (chartInstance) {
+                    chartInstance.destroy();
+                }
+
+                renderGraph(column, data[column], graphType);
+            });
+
+            // Render the view based on the selected mode and columns
+            function renderView() {
+                const viewMode = $('#view-mode').val();
+                $('#graphs-container').empty();
+                columns.forEach(column => {
+                    if ($(`#columns-container input[value="${column}"]`).is(':checked')) {
+                        if (viewMode === 'graph') {
+                            renderGraph(column, data[column], graphTypes[Math.floor(Math.random() * graphTypes.length)]);
+                        } else {
+                            renderCount(column, data[column]);
+                        }
+                    }
+                });
+            }
         });
-      }
-    });
-  </script>
+    </script>
 </body>
 
 </html>
