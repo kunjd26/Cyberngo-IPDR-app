@@ -28,12 +28,13 @@
             <div class="w-1/5 bg-white shadow-md rounded p-4">
                 <h2 class="text-2xl font-bold mb-2">Columns</h2>
                 <div id="columns-container" class="flex flex-col">
-                    <% columns.forEach((column, index)=> { %>
+                    <% const defaultColumns=[ 'source ip' , 'source port' , 'destination ip' , 'destination port'
+                        , 'country name' , 'continent name' , 'port_description' , 'asn' , 'as_name' , 'as_domain'
+                        , 'city' , 'region' , 'loc' , 'org' ]; columns.forEach((column)=> { %>
                         <div class="mb-2">
                             <label>
-                                <input type="checkbox" class="mr-1 column-checkbox" value="<%= column %>" <%=index < 10
-                                    ? 'checked' : '' %>>
-                                <%= column %>
+                                <input type="checkbox" class="mr-1 column-checkbox" value="<%= column %>"
+                                    <%=defaultColumns.includes(column.toLowerCase()) ? 'checked' : '' %>> <%= column %>
                             </label>
                         </div>
                         <% }) %>
@@ -45,8 +46,8 @@
                     <h1 class="text-3xl font-bold">IPDR Dashboard</h1>
                     <div>
                         <select id="view-mode" class="bg-gray-200 text-gray-700 px-4 py-2 rounded mr-2">
-                            <option value="graph">Graph</option>
-                            <option value="count">Count</option>
+                            <option value="graph">Visuals</option>
+                            <option value="count">Numbers</option>
                         </select>
                         <button id="show-csv-btn" class="bg-blue-500 text-white px-4 py-2 rounded">Show CSV</button>
                     </div>
@@ -88,28 +89,42 @@
                 renderView();
             });
 
+            // Function to escape special characters in jQuery selector
+            function escapeSelector(selector) {
+                return selector.replace(/([ #;&,.+*~':"!^$[\]()=>|/@])/g, '\\$1');
+            }
+
             // Render graph with different types
             function renderGraph(column, columnData, graphType) {
-                const ctxId = `chart-${column}`;
-                $('#graphs-container').append(`
-          <div id="graph-${column}" class="bg-white shadow-md rounded p-4">
-            <div class="flex justify-between items-center mb-2">
-              <h2 class="text-xl font-bold">${column}</h2>
-              <select class="graph-type-selector bg-gray-200 text-gray-700 px-2 py-1 rounded" data-column="${column}">
-                <option value="bar" ${graphType === 'bar' ? 'selected' : ''}>Bar</option>
-                <option value="line" ${graphType === 'line' ? 'selected' : ''}>Line</option>
-                <option value="pie" ${graphType === 'pie' ? 'selected' : ''}>Pie</option>
-              </select>
-            </div>
-            <canvas id="${ctxId}"></canvas>
-          </div>
-        `);
+                const escapedColumn = escapeSelector(column);
+                const ctxId = `chart-${escapedColumn}`;
+                const graphContainerId = `graph-${escapedColumn}`;
+
+                if (Chart.getChart(ctxId)) {
+                    Chart.getChart(ctxId).destroy();
+                }
+
+                if (!$(`#${graphContainerId}`).length) {
+                    $('#graphs-container').append(`
+                        <div id="${graphContainerId}" class="bg-white shadow-md rounded p-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <h2 class="text-xl font-bold">${column}</h2>
+                                <select class="graph-type-selector bg-gray-200 text-gray-700 px-2 py-1 rounded" data-column="${column}">
+                                    <option value="bar">Bar</option>
+                                    <option value="line">Line</option>
+                                    <option value="pie">Pie</option>
+                                </select>
+                            </div>
+                            <canvas id="${ctxId}"></canvas>
+                        </div>
+                    `);
+                }
 
                 const ctx = document.getElementById(ctxId).getContext('2d');
                 const labels = columnData.map(item => item.value);
                 const percentages = columnData.map(item => item.percentage);
 
-                const chart = new Chart(ctx, {
+                new Chart(ctx, {
                     type: graphType,
                     data: {
                         labels: labels,
@@ -130,32 +145,26 @@
                     }
                 });
 
-                // Store the chart instance
-                $(`#graph-${column}`).data('chartInstance', chart);
+                $(`#${graphContainerId} .graph-type-selector`).val(graphType);
             }
 
             // Render count
             function renderCount(column, columnData) {
+                const escapedColumn = escapeSelector(column);
                 $('#graphs-container').append(`
-          <div id="graph-${column}" class="bg-white shadow-md rounded p-4">
-            <h2 class="text-xl font-bold mb-2">${column}</h2>
-            <ul>
-              ${columnData.map(item => `<li class="count-item"><span>${item.value}:</span> ${item.count} records (${item.percentage}%)</li>`).join('')}
-            </ul>
-          </div>
-        `);
+                    <div id="graph-${escapedColumn}" class="bg-white shadow-md rounded p-4">
+                        <h2 class="text-xl font-bold mb-2">${column}</h2>
+                        <ul>
+                            ${columnData.map(item => `<li class="count-item"><span>${item.value}:</span> ${item.record_count} records (${item.percentage}%)</li>`).join('')}
+                        </ul>
+                    </div>
+                `);
             }
 
             // Update graph type on selector change
             $('#graphs-container').on('change', '.graph-type-selector', function () {
                 const column = $(this).data('column');
                 const graphType = $(this).val();
-                const chartInstance = $(`#graph-${column}`).data('chartInstance');
-
-                if (chartInstance) {
-                    chartInstance.destroy();
-                }
-
                 renderGraph(column, data[column], graphType);
             });
 
@@ -164,7 +173,7 @@
                 const viewMode = $('#view-mode').val();
                 $('#graphs-container').empty();
                 columns.forEach(column => {
-                    if ($(`#columns-container input[value="${column}"]`).is(':checked')) {
+                    if ($(`#columns-container input[value="${escapeSelector(column)}"]`).is(':checked')) {
                         if (viewMode === 'graph') {
                             renderGraph(column, data[column], graphTypes[Math.floor(Math.random() * graphTypes.length)]);
                         } else {
