@@ -96,7 +96,7 @@
 
             // Render graph with different types
             function renderGraph(column, columnData, graphType) {
-                const escapedColumn = escapeSelector(column);
+                const escapedColumn = column.replace(/ /g, '-');
                 const ctxId = `chart-${escapedColumn}`;
                 const graphContainerId = `graph-${escapedColumn}`;
 
