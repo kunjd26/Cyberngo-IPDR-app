@@ -1,9 +1,9 @@
 # docker-compose.yml
-version: '3.8'  # Use an appropriate version if needed
+version: '3.8'
 
 services:
   backend:
-    image: kunjd26/ipdr-backend-app:v0  # Use your pre-built image name and tag
+    image: kunjd26/ipdr-backend-app:v0
     container_name: backend
     ports:
       - "5000:5000"
@@ -11,7 +11,7 @@ services:
       - app-network
 
   frontend:
-    image: kunjd26/ipdr-frontend-app:v0  # Use your pre-built image name and tag
+    image: kunjd26/ipdr-frontend-app:v0
     container_name: frontend
     ports:
       - "3000:3000"
